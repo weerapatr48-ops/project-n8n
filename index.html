@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Task Console — n8n Demo</title>
+<title>AI Quotation — n8n</title>
 <style>
   :root{
     --bg:#0B1220; --panel:#121B2E; --panel-2:#0F1830; --border:#213050;
@@ -23,19 +23,15 @@
   }
   .logo{font-family:var(--mono);font-weight:700;font-size:16px;letter-spacing:.5px;}
   .logo span{color:var(--accent);}
-  
+
   .field{display:flex;flex-direction:column;gap:4px;}
   .field label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
   
-  input[type=text], select{
+  input[type=text], select, textarea{
     background:var(--panel);border:1px solid var(--border);color:var(--text);
-    padding:7px 10px;border-radius:6px;font-family:var(--mono);font-size:13px;
+    padding:8px 10px;border-radius:6px;font-family:var(--sans);font-size:13px;
   }
-  select{cursor:pointer;}
-
-  .role-tag{font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600;letter-spacing:.4px;}
-  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--muted);}
-  .status-dot.live{background:var(--accent);box-shadow:0 0 8px var(--accent);}
+  textarea{resize:vertical;}
 
   .connbtn{
     background:var(--accent-dim);color:#fff;border:none;padding:8px 14px;
@@ -44,43 +40,26 @@
   .connbtn:hover{background:var(--accent);}
   .connbtn:disabled{opacity:0.6;cursor:not-allowed;}
 
-  main{display:grid;grid-template-columns:1.6fr 1fr;gap:20px;padding:24px;max-width:1200px;margin:0 auto;}
-  @media(max-width:860px){main{grid-template-columns:1fr;}}
+  main{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:24px;max-width:1300px;margin:0 auto;}
+  @media(max-width:900px){main{grid-template-columns:1fr;}}
 
-  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px;}
-  .panel h2{margin:0 0 14px;font-size:14px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600;}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;}
+  .panel h2{margin:0 0 16px;font-size:15px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600;}
 
-  table{width:100%;border-collapse:collapse;font-size:14px;min-width:600px;}
-  th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:6px 8px;border-bottom:1px solid var(--border);}
-  td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
-  
-  .task-table-wrapper{overflow-x:auto;border-radius:8px;}
-  
-  .taskid{font-family:var(--mono);color:var(--muted);}
-  .status-pill{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:10px;background:var(--panel-2);border:1px solid var(--border);}
-
-  .actions button{
-    background:none;border:1px solid var(--border);color:var(--text);
-    padding:5px 9px;border-radius:5px;font-size:12px;cursor:pointer;margin-right:6px;
+  .prompt-area textarea{
+    width:100%; min-height:280px; font-size:14px; line-height:1.5;
   }
-  .actions button:hover{border-color:var(--accent);}
-  .actions button.danger:hover{border-color:var(--danger);color:var(--danger);}
-  .actions button:disabled{opacity:.4;cursor:not-allowed;}
 
-  form{display:flex;flex-direction:column;gap:10px;}
-  form input, form select, form textarea{
-    background:var(--panel-2);border:1px solid var(--border);color:var(--text);
-    padding:9px 10px;border-radius:6px;font-family:var(--sans);font-size:13px;
+  .result-area{
+    background:var(--panel-2); min-height:400px; padding:20px; border-radius:8px;
+    white-space:pre-wrap; font-size:14px; line-height:1.6;
+    border:1px solid var(--border);
   }
-  form textarea{resize:vertical;min-height:70px;}
-  form button{
-    background:var(--accent);border:none;color:#04211d;font-weight:700;
-    padding:10px;border-radius:6px;cursor:pointer;font-size:13px;
+  .result-area:empty::before{
+    content:"ผลลัพธ์ใบเสนอราคาจะแสดงที่นี่...";
+    color:var(--muted);
+    font-style:italic;
   }
-  form button:disabled{background:var(--panel-2);color:var(--muted);cursor:not-allowed;}
-
-  .empty{color:var(--muted);font-size:13px;padding:40px 0;text-align:center;}
-  .locked{color:var(--muted);font-size:12px;background:var(--panel-2);border:1px dashed var(--border);padding:12px;border-radius:6px;text-align:center;}
 
   .log{
     grid-column:1/-1;background:var(--panel);border:1px solid var(--border);
@@ -91,16 +70,23 @@
   .log-entry .m{color:var(--accent);font-weight:700;min-width:50px;}
   .log-entry .s-ok{color:var(--accent);}
   .log-entry .s-err{color:var(--danger);}
+
+  button.generate{
+    background:var(--accent); color:#04211d; font-weight:700;
+    padding:12px 24px; font-size:15px; border:none; border-radius:8px;
+    cursor:pointer; margin-top:10px;
+  }
+  button.generate:disabled{opacity:0.6; cursor:not-allowed;}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">Task<span>Console</span></div>
+  <div class="logo">AI<span>Quotation</span></div>
 
   <div class="field">
     <label>n8n Webhook Base URL</label>
-    <input type="text" id="baseUrl" placeholder="https://your-n8n.com/webhook" value="">
+    <input type="text" id="baseUrl" placeholder="https://your-n8n.com/webhook" style="min-width:280px;">
   </div>
 
   <div class="field">
@@ -116,41 +102,25 @@
 
   <div class="field" style="margin-left:auto;">
     <label>สถานะ</label>
-    <div><span class="status-dot" id="statusDot"></span><span id="statusText">โหมดสาธิต</span> <span class="badge-mode" id="modeBadge">DEMO</span></div>
+    <div><span class="status-dot" id="statusDot"></span><span id="statusText">โหมดสาธิต</span> <span id="modeBadge">DEMO</span></div>
   </div>
 </header>
 
 <main>
+  <!-- ฝั่งซ้าย: Prompt -->
   <section class="panel">
-    <h2>รายการงาน (Tasks)</h2>
-    <div class="task-table-wrapper">
-      <table>
-        <thead>
-          <tr><th>ID</th><th>ชื่องาน</th><th>รายละเอียด</th><th>สถานะ</th><th>การจัดการ</th></tr>
-        </thead>
-        <tbody id="taskBody"></tbody>
-      </table>
+    <h2>คำสั่งให้ AI สร้างใบเสนอราคา</h2>
+    <div class="prompt-area">
+      <textarea id="promptInput" placeholder="ตัวอย่างคำสั่ง:&#10;สร้างใบเสนอราคาสำหรับลูกค้า บริษัท ABC จำกัด&#10;สินค้า: โต๊ะประชุม 10 ที่นั่ง, เก้าอี้ผู้บริหาร 20 ตัว&#10;ราคารวมไม่เกิน 450,000 บาท&#10;ต้องการส่งภายใน 2 วันนี้"></textarea>
+      
+      <button class="generate" id="generateBtn">🚀 สร้างใบเสนอราคา</button>
     </div>
-    <div class="empty" id="emptyMsg">ยังไม่มีงานในระบบ</div>
   </section>
 
+  <!-- ฝั่งขวา: ผลลัพธ์ -->
   <section class="panel">
-    <h2 id="formTitle">เพิ่มงานใหม่</h2>
-    <form id="taskForm">
-      <input type="hidden" id="editId" value="">
-      <input type="text" id="fTitle" placeholder="ชื่อเรื่องงาน" required>
-      <textarea id="fDesc" placeholder="รายละเอียดงาน..."></textarea>
-      <select id="fStatus">
-        <option value="pending">pending</option>
-        <option value="in_progress">in_progress</option>
-        <option value="done">done</option>
-      </select>
-      <button type="submit" id="submitBtn">บันทึกงาน</button>
-      <button type="button" id="cancelEdit" style="display:none;background:var(--panel-2);color:var(--text);">ยกเลิก</button>
-    </form>
-    <div class="locked" id="lockedMsg">
-      บทบาท <b>viewer</b> สามารถดูข้อมูลได้เท่านั้น
-    </div>
+    <h2>ผลลัพธ์ใบเสนอราคา</h2>
+    <div id="resultArea" class="result-area"></div>
   </section>
 </main>
 
@@ -160,14 +130,8 @@
 </div>
 
 <script>
-// ==================== ข้อมูลและตัวแปร ====================
-let tasks = [
-  {id:1, title:'ออกแบบหน้า Login', description:'ทำ wireframe และเลือกสี', status:'in_progress'},
-  {id:2, title:'เชื่อมต่อฐานข้อมูล Postgres', description:'ตั้งค่า credential ใน n8n', status:'pending'},
-  {id:3, title:'ทดสอบสิทธิ์ผู้ใช้งาน', description:'ลองสลับ role แล้วดูว่าปุ่มถูกจำกัดถูกต้องไหม', status:'done'}
-];
-let nextId = 4;
-let mode = 'demo'; // 'demo' or 'live'
+// ==================== Variables ====================
+let mode = 'demo';
 let isProcessing = false;
 
 const els = {
@@ -177,45 +141,22 @@ const els = {
   statusDot: document.getElementById('statusDot'),
   statusText: document.getElementById('statusText'),
   modeBadge: document.getElementById('modeBadge'),
-  taskBody: document.getElementById('taskBody'),
-  emptyMsg: document.getElementById('emptyMsg'),
-  form: document.getElementById('taskForm'),
-  fTitle: document.getElementById('fTitle'),
-  fDesc: document.getElementById('fDesc'),
-  fStatus: document.getElementById('fStatus'),
-  editId: document.getElementById('editId'),
-  submitBtn: document.getElementById('submitBtn'),
-  cancelEdit: document.getElementById('cancelEdit'),
-  formTitle: document.getElementById('formTitle'),
-  lockedMsg: document.getElementById('lockedMsg'),
+  promptInput: document.getElementById('promptInput'),
+  generateBtn: document.getElementById('generateBtn'),
+  resultArea: document.getElementById('resultArea'),
   logBody: document.getElementById('logBody')
 };
 
 // ==================== Helper ====================
-function escapeHtml(unsafe) {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+function escapeHtml(text) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function currentRole() { return els.roleSelect.value; }
 
-function can(action) {
-  const role = currentRole();
-  if (action === 'view') return true;
-  if (action === 'create' || action === 'edit') return role === 'admin' || role === 'editor';
-  if (action === 'delete') return role === 'admin';
-  return false;
-}
-
 function logRequest(method, path, role, status, ok) {
   const empty = els.logBody.querySelector('.log-entry span:last-child');
-  if (empty && empty.textContent.includes('ยังไม่มีการเรียก')) {
-    els.logBody.innerHTML = '';
-  }
+  if (empty && empty.textContent.includes('ยังไม่มีการเรียก')) els.logBody.innerHTML = '';
 
   const row = document.createElement('div');
   row.className = 'log-entry';
@@ -227,215 +168,80 @@ function logRequest(method, path, role, status, ok) {
   `;
   els.logBody.prepend(row);
 
-  // จำกัด log ไม่เกิน 6 รายการ
-  while (els.logBody.children.length > 6) {
-    els.logBody.removeChild(els.logBody.lastChild);
-  }
+  while (els.logBody.children.length > 7) els.logBody.removeChild(els.logBody.lastChild);
 }
 
-// ==================== Render ====================
-function renderPermissions() {
-  const canModify = can('create');
-  els.fTitle.disabled = !canModify;
-  els.fDesc.disabled = !canModify;
-  els.fStatus.disabled = !canModify;
-  els.submitBtn.disabled = !canModify;
-  els.lockedMsg.style.display = canModify ? 'none' : 'block';
-}
-
-function renderTasks() {
-  els.taskBody.innerHTML = '';
-  
-  if (tasks.length === 0) {
-    els.emptyMsg.style.display = 'block';
+// ==================== Main Function ====================
+els.generateBtn.addEventListener('click', async () => {
+  const prompt = els.promptInput.value.trim();
+  if (!prompt) {
+    alert('กรุณาใส่คำสั่งสำหรับ AI');
     return;
   }
-  
-  els.emptyMsg.style.display = 'none';
-
-  tasks.forEach(t => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="taskid">#${t.id}</td>
-      <td><strong>${escapeHtml(t.title)}</strong></td>
-      <td style="color:var(--muted)">${escapeHtml(t.description || '-')}</td>
-      <td><span class="status-pill">${t.status}</span></td>
-      <td class="actions">
-        <button data-act="edit" data-id="${t.id}" ${can('edit')?'':'disabled'}>แก้ไข</button>
-        <button data-act="del" data-id="${t.id}" class="danger" ${can('delete')?'':'disabled'}>ลบ</button>
-      </td>`;
-    els.taskBody.appendChild(tr);
-  });
-}
-
-// ==================== Event Handlers ====================
-els.taskBody.addEventListener('click', e => {
-  const btn = e.target.closest('button');
-  if (!btn || btn.disabled) return;
-  
-  const id = Number(btn.dataset.id);
-  if (btn.dataset.act === 'edit') startEdit(id);
-  if (btn.dataset.act === 'del') deleteTask(id);
-});
-
-function startEdit(id) {
-  const t = tasks.find(x => x.id === id);
-  if (!t) return;
-
-  els.editId.value = id;
-  els.fTitle.value = t.title;
-  els.fDesc.value = t.description || '';
-  els.fStatus.value = t.status;
-  
-  els.formTitle.textContent = `แก้ไขงาน #${id}`;
-  els.submitBtn.textContent = 'บันทึกการแก้ไข';
-  els.cancelEdit.style.display = 'inline-block';
-}
-
-els.cancelEdit.addEventListener('click', resetForm);
-
-function resetForm() {
-  els.editId.value = '';
-  els.form.reset();
-  els.formTitle.textContent = 'เพิ่มงานใหม่';
-  els.submitBtn.textContent = 'บันทึกงาน';
-  els.cancelEdit.style.display = 'none';
-}
-
-els.form.addEventListener('submit', async e => {
-  e.preventDefault();
   if (isProcessing) return;
-  
-  isProcessing = true;
-  els.submitBtn.disabled = true;
 
-  const isEdit = !!els.editId.value;
-  const payload = {
-    title: els.fTitle.value.trim(),
-    description: els.fDesc.value.trim(),
-    status: els.fStatus.value
-  };
+  isProcessing = true;
+  els.generateBtn.disabled = true;
+  els.generateBtn.textContent = 'กำลังสร้างใบเสนอราคา...';
+  els.resultArea.textContent = 'กำลังประมวลผล...';
+
+  const payload = { prompt: prompt, type: "quotation" };
 
   try {
     if (mode === 'demo') {
-      handleDemoOperation(isEdit, payload);
+      // Demo Mode
+      logRequest('POST', '/ai/quotation', currentRole(), '200 (จำลอง)', true);
+      setTimeout(() => {
+        els.resultArea.innerHTML = `<strong>ใบเสนอราคา (ตัวอย่าง)</strong><br><br>
+ลูกค้า: บริษัทตัวอย่าง จำกัด<br>
+วันที่: ${new Date().toLocaleDateString('th-TH')}<br><br>
+รายการสินค้า/บริการ:<br>
+• โต๊ะประชุมขนาดใหญ่ 10 ที่นั่ง — 150,000 บาท<br>
+• เก้าอี้ผู้บริหาร 20 ตัว — 180,000 บาท<br>
+• ระบบไฟฟ้าและสายเคเบิล — 45,000 บาท<br><br>
+ยอดรวมทั้งหมด: <strong>375,000 บาท</strong><br>
+ส่วนลดพิเศษ: 10% → <strong>337,500 บาท</strong>`;
+      }, 1200);
     } else {
-      await handleLiveOperation(isEdit, payload);
+      // Live Mode
+      const base = els.baseUrl.value.trim().replace(/\/$/, '');
+      if (!base) {
+        alert('กรุณากรอก n8n Webhook URL');
+        return;
+      }
+
+      const url = `${base}/ai/quotation`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-role': currentRole()
+        },
+        body: JSON.stringify(payload)
+      });
+
+      logRequest('POST', '/ai/quotation', currentRole(), res.status, res.ok);
+
+      if (res.ok) {
+        const data = await res.json();
+        els.resultArea.textContent = data.result || data.quotation || data.message || JSON.stringify(data, null, 2);
+      } else {
+        els.resultArea.textContent = `เกิดข้อผิดพลาด: ${res.status} - ไม่มีสิทธิ์หรือ workflow ไม่ทำงาน`;
+      }
     }
+  } catch (err) {
+    logRequest('POST', '/ai/quotation', currentRole(), 'network error', false);
+    els.resultArea.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ n8n\n' + err.message;
   } finally {
     isProcessing = false;
-    els.submitBtn.disabled = false;
+    els.generateBtn.disabled = false;
+    els.generateBtn.textContent = '🚀 สร้างใบเสนอราคา';
   }
 });
 
-function handleDemoOperation(isEdit, payload) {
-  if (!can(isEdit ? 'edit' : 'create')) {
-    logRequest(isEdit ? 'PUT' : 'POST', isEdit ? `/tasks/${els.editId.value}` : '/tasks', currentRole(), '403 (จำลอง)', false);
-    alert('บทบาทนี้ไม่มีสิทธิ์ทำรายการนี้');
-    return;
-  }
-
-  if (isEdit) {
-    const t = tasks.find(x => x.id === Number(els.editId.value));
-    if (t) Object.assign(t, payload);
-    logRequest('PUT', `/tasks/${t.id}`, currentRole(), '200 (จำลอง)', true);
-  } else {
-    tasks.unshift({id: nextId++, ...payload});
-    logRequest('POST', '/tasks', currentRole(), '201 (จำลอง)', true);
-  }
-
-  renderTasks();
-  resetForm();
-}
-
-async function handleLiveOperation(isEdit, payload) {
-  const base = els.baseUrl.value.trim().replace(/\/$/, '');
-  if (!base) {
-    alert('กรุณากรอก n8n Webhook URL');
-    return;
-  }
-
-  const url = isEdit ? `${base}/tasks/${els.editId.value}` : `${base}/tasks`;
-  const method = isEdit ? 'PUT' : 'POST';
-
-  try {
-    const res = await fetch(url, {
-      method,
-      headers: {'Content-Type': 'application/json', 'x-role': currentRole()},
-      body: JSON.stringify(payload)
-    });
-
-    logRequest(method, url.replace(base, ''), currentRole(), res.status, res.ok);
-    
-    if (!res.ok) {
-      alert('เซิร์ฟเวอร์ปฏิเสธคำขอ (สิทธิ์ไม่พอ หรือเกิดข้อผิดพลาด)');
-      return;
-    }
-
-    await refreshLive();
-    resetForm();
-  } catch (err) {
-    logRequest(method, url.replace(base, ''), currentRole(), 'network error', false);
-    alert('เชื่อมต่อ n8n ไม่สำเร็จ');
-  }
-}
-
-async function deleteTask(id) {
-  if (!confirm(`ยืนยันลบงาน #${id}?`)) return;
-
-  if (mode === 'demo') {
-    if (!can('delete')) {
-      logRequest('DELETE', `/tasks/${id}`, currentRole(), '403 (จำลอง)', false);
-      alert('บทบาทนี้ไม่มีสิทธิ์ลบงาน');
-      return;
-    }
-    tasks = tasks.filter(t => t.id !== id);
-    logRequest('DELETE', `/tasks/${id}`, currentRole(), '200 (จำลอง)', true);
-    renderTasks();
-    return;
-  }
-
-  // Live mode
-  const base = els.baseUrl.value.trim().replace(/\/$/, '');
-  try {
-    const res = await fetch(`${base}/tasks/${id}`, {
-      method: 'DELETE',
-      headers: {'x-role': currentRole()}
-    });
-
-    logRequest('DELETE', `/tasks/${id}`, currentRole(), res.status, res.ok);
-    if (res.ok) await refreshLive();
-    else alert('ไม่สามารถลบได้ (สิทธิ์ไม่พอ)');
-  } catch (err) {
-    logRequest('DELETE', `/tasks/${id}`, currentRole(), 'network error', false);
-    alert('เชื่อมต่อ n8n ไม่สำเร็จ');
-  }
-}
-
-async function refreshLive() {
-  const base = els.baseUrl.value.trim().replace(/\/$/, '');
-  if (!base) return;
-
-  try {
-    const res = await fetch(`${base}/tasks`, {
-      headers: {'x-role': currentRole()}
-    });
-    logRequest('GET', '/tasks', currentRole(), res.status, res.ok);
-
-    if (res.ok) {
-      const data = await res.json();
-      tasks = Array.isArray(data) ? data : (data.rows || data.data || []);
-      renderTasks();
-    }
-  } catch (err) {
-    logRequest('GET', '/tasks', currentRole(), 'network error', false);
-  }
-}
-
-// ==================== Event Listeners ====================
-els.connectBtn.addEventListener('click', async () => {
+// ==================== Connect & Role ====================
+els.connectBtn.addEventListener('click', () => {
   const url = els.baseUrl.value.trim();
-  
   if (!url) {
     mode = 'demo';
     els.statusDot.classList.remove('live');
@@ -445,24 +251,22 @@ els.connectBtn.addEventListener('click', async () => {
   }
 
   mode = 'live';
-  els.connectBtn.disabled = true;
-  els.statusText.textContent = 'กำลังเชื่อมต่อ...';
-
-  await refreshLive();
-
   els.statusDot.classList.add('live');
-  els.statusText.textContent = 'เชื่อมต่อสำเร็จ';
+  els.statusText.textContent = 'เชื่อมต่อ n8n สำเร็จ';
   els.modeBadge.textContent = 'LIVE';
-  els.connectBtn.disabled = false;
 });
 
 els.roleSelect.addEventListener('change', () => {
-  renderPermissions();
-  if (mode === 'live') refreshLive();
+  if (mode === 'live') {
+    // สามารถเพิ่ม refresh logic ได้ในอนาคต
+  }
 });
 
-renderPermissions();
-renderTasks();
+// Initial
+els.modeBadge.style.background = '#1E7B6E';
+els.modeBadge.style.color = '#fff';
+els.modeBadge.style.padding = '2px 8px';
+els.modeBadge.style.borderRadius = '4px';
 </script>
 </body>
 </html>
