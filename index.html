@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ระบบใบเสนอราคา</title>
+</head>
+<body>
+    
+    <h2>ทดสอบระบบใบเสนอราคา</h2>
+    
+    <input type="text" id="myPrompt" placeholder="พิมพ์ความต้องการที่นี่...">
+    
+    <button onclick="testButton()">ส่งข้อมูล</button>
+
+    <script>
+        // ฟังก์ชันนี้จะทำงานเมื่อปุ่มถูกกด
+        function testButton() {
+            // ดึงข้อความจากช่อง input มาเก็บไว้
+            let text = document.getElementById("myPrompt").value;
+            
+            // แสดงหน้าต่างเด้งขึ้นมา เพื่อเช็กว่าดึงข้อความมาได้จริงๆ
+            alert("คุณพิมพ์คำว่า: " + text);
+        }
+    </script>
+    
+</body>
+</html>
