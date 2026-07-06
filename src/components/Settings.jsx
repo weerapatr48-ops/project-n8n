@@ -23,11 +23,16 @@ export default function Settings() {
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // โหลด n8n URL จาก localStorage ก่อน
+  // โหลด n8n URL และตั้งค่าจาก localStorage ก่อน
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem('appSettings') || '{}');
       setN8nUrl(s.n8nUrl || '');
+      
+      const localProfile = JSON.parse(localStorage.getItem('companyProfile') || '{}');
+      if (localProfile.companyName) {
+        setSettings(prev => ({ ...prev, ...localProfile }));
+      }
     } catch {}
   }, []);
 
@@ -42,13 +47,15 @@ export default function Settings() {
         const result = await response.json();
         const data = Array.isArray(result) && result[0]?.json ? result[0].json : (Array.isArray(result) ? result[0] : result);
         if (data) {
-          setSettings({
+          const newSettings = {
             companyName: data['Company Name'] || '',
             companyTaxId: data['Tax ID'] || '',
             companyAddress: data['Address'] || '',
             companyPhone: data['Phone'] || '',
             companyLogo: data['Logo URL'] || ''
-          });
+          };
+          setSettings(newSettings);
+          localStorage.setItem('companyProfile', JSON.stringify(newSettings));
         }
       } else {
         alert(`ดึงข้อมูลไม่สำเร็จ (Status: ${response.status}) โปรดตรวจสอบว่าเปิด Active ใน n8n หรือยัง`);
@@ -76,8 +83,9 @@ export default function Settings() {
   };
 
   const handleSave = async () => {
-    // 1. Save n8nUrl to LocalStorage
+    // 1. Save locally to ensure UI works immediately
     localStorage.setItem('appSettings', JSON.stringify({ n8nUrl }));
+    localStorage.setItem('companyProfile', JSON.stringify(settings));
     
     // 2. Save Company Info to Google Sheets via n8n
     const url = getN8nUrl();
