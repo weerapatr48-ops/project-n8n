@@ -170,7 +170,83 @@
       "name": "อัปเดตการตั้งค่า",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "path": "project",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "id": "be7cb364-7746-46a8-8bb2-c2a60044c423",
+      "name": "Webhook (GET project)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [160, 500]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "id": "911063fd-bf56-4e65-a137-abb7435ffab9",
+      "name": "ดึงข้อมูลลูกค้า (Google Sheets)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [416, 500]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "project",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "4f791348-b363-450d-979e-919fec47e35f",
+      "name": "Webhook (POST project)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [160, 700]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_GEMINI_API_KEY",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"คุณคือ AI ผู้ช่วยสร้างใบเสนอราคา หน้าที่ของคุณคืออ่านข้อความความต้องการจากผู้ใช้ แล้วสกัดข้อมูลออกมาเป็นรูปแบบ JSON เท่านั้น (ห้ามมีข้อความอื่นปะปน) \\n\\nโครงสร้าง JSON ที่ต้องการ:\\n{\\n  \\\"customerInfo\\\": {\\n    \\\"name\\\": \\\"ชื่อบริษัทหรือชื่อลูกค้า (เดาข้อมูลที่ขาดหายไปให้สมจริง)\\\",\\n    \\\"taxId\\\": \\\"เลขผู้เสียภาษี (สุ่มเลข 13 หลักถ้าไม่ระบุ)\\\",\\n    \\\"address\\\": \\\"ที่อยู่ (สร้างที่อยู่สมมติถ้าไม่ระบุ)\\\",\\n    \\\"contact\\\": \\\"ชื่อผู้ติดต่อ\\\",\\n    \\\"date\\\": \\\"2026-07-06\\\"\\n  },\\n  \\\"items\\\": [\\n    {\\n      \\\"description\\\": \\\"ชื่อสินค้าและรายละเอียด\\\",\\n      \\\"quantity\\\": 1,\\n      \\\"price\\\": 1000\\n    }\\n  ]\\n}\\n\\nข้อความจากผู้ใช้:\\n{{ $json.body.prompt }}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "d802cfb2-6fb6-4e6c-a1c5-f3b19c9d3cb9",
+      "name": "Gemini API (HTTP Request)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [416, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  // ดึงข้อความตอบกลับจาก API\n  let aiResponse = $input.item.json.candidates[0].content.parts[0].text || \"\";\n  \n  // ตัด Markdown ```json และ ``` ออก\n  aiResponse = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim();\n\n  return {\n    json: JSON.parse(aiResponse)\n  };\n} catch(e) {\n  return { json: { error: \"แปลงข้อมูลไม่สำเร็จ\", raw: $input.item.json } };\n}"
+      },
+      "id": "5c1967c2-e3cb-4a0b-ad4a-55aca9681f77",
+      "name": "แปลงข้อความเป็น JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [672, 700]
     }
   ],
   "connections": {
@@ -207,6 +283,39 @@
         [
           {
             "node": "อัปเดตการตั้งค่า",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (GET project)": {
+      "main": [
+        [
+          {
+            "node": "ดึงข้อมูลลูกค้า (Google Sheets)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (POST project)": {
+      "main": [
+        [
+          {
+            "node": "Gemini API (HTTP Request)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini API (HTTP Request)": {
+      "main": [
+        [
+          {
+            "node": "แปลงข้อความเป็น JSON",
             "type": "main",
             "index": 0
           }
