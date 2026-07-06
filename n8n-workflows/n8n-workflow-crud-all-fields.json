@@ -1,0 +1,217 @@
+{
+  "name": "CRUD Database ALL FIELDS",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "database-action",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "66fb4f02-7fcb-4188-9db0-91cc6d5cace1",
+      "name": "Webhook (จัดการฐานข้อมูล)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [-448, 112]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.action }}",
+        "rules": {
+          "rules": [
+            { "value2": "update" },
+            { "value2": "delete", "output": 1 }
+          ]
+        }
+      },
+      "id": "02069223-e13a-4609-ad6b-f41f6afcb4b7",
+      "name": "เช็คคำสั่ง (Update/Delete)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [-256, 112]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "รหัสลูกค้า/ผู้ขาย": "={{ $json.body.data.id }}",
+            "ชื่อลูกค้า/ผู้ขาย": "={{ $json.body.data.name }}",
+            "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย": "={{ $json.body.data.taxId }}",
+            "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย": "={{ $json.body.data.type }}",
+            "ผู้ติดต่อ": "={{ $json.body.data.contact }}",
+            "โทรศัพท์": "={{ $json.body.data.phone }}",
+            "อีเมล": "={{ $json.body.data.email }}",
+            "ที่อยู่ 1": "={{ $json.body.data.address }}",
+            "อำเภอ": "={{ $json.body.data.district }}",
+            "จังหวัด": "={{ $json.body.data.province }}",
+            "เครดิต (วัน)": "={{ $json.body.data.credit }}",
+            "วงเงิน": "={{ $json.body.data.limit }}",
+            "หมายเหตุ": "={{ $json.body.data.remark }}"
+          },
+          "matchingColumns": ["รหัสลูกค้า/ผู้ขาย"]
+        },
+        "options": {}
+      },
+      "id": "bf7955b0-9234-4830-b417-535860be4ceb",
+      "name": "อัปเดตข้อมูล (แก้ไข)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "startIndex": "={{ $json.body.data.rowNumber }}",
+        "numberToDelete": 1
+      },
+      "id": "bef20d3b-1b06-4cb5-84e1-6c75db957b02",
+      "name": "ลบข้อมูล (Delete Row)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [0, 208]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "settings",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "e45f9e29-a1b4-4b5c-b173-9828d57d4a1b",
+      "name": "Webhook (POST Settings)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "path": "settings",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "c1f8e28a-1a84-4b9d-b841-8c4d2918a93e",
+      "name": "Webhook (GET Settings)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 100]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Settings",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "id": "f8a9e11c-2c93-4f8a-a43b-287c88b7d91e",
+      "name": "ดึงข้อมูลการตั้งค่า",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [400, 100]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Settings",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "1",
+            "Company Name": "={{ $json.body.companyName }}",
+            "Tax ID": "={{ $json.body.companyTaxId }}",
+            "Address": "={{ $json.body.companyAddress }}",
+            "Phone": "={{ $json.body.companyPhone }}",
+            "Logo URL": "={{ $json.body.companyLogo }}"
+          },
+          "matchingColumns": ["ID"]
+        },
+        "options": {}
+      },
+      "id": "a5d8e72f-1e9a-4c8d-b942-837d99c4f1a5",
+      "name": "อัปเดตการตั้งค่า",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [400, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (จัดการฐานข้อมูล)": {
+      "main": [
+        [
+          { "node": "เช็คคำสั่ง (Update/Delete)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "เช็คคำสั่ง (Update/Delete)": {
+      "main": [
+        [
+          { "node": "อัปเดตข้อมูล (แก้ไข)", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "ลบข้อมูล (Delete Row)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Webhook (GET Settings)": {
+      "main": [
+        [
+          {
+            "node": "ดึงข้อมูลการตั้งค่า",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (POST Settings)": {
+      "main": [
+        [
+          {
+            "node": "อัปเดตการตั้งค่า",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
