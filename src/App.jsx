@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
-import QuotationMaker from './components/QuotationMaker';
+import AIAssistant from './components/AIAssistant';
 import DatabaseManager from './components/DatabaseManager';
 import Settings from './components/Settings';
 
@@ -21,7 +21,7 @@ function App() {
       <Sidebar currentTab={currentTab} setCurrentTab={setCurrentTab} isDark={isDark} setIsDark={setIsDark} />
       
       <main className="main-content">
-        {currentTab === 'quote' && <QuotationMaker />}
+        {currentTab === 'quote' && <AIAssistant />}
         {currentTab === 'database' && <DatabaseManager />}
         {currentTab === 'settings' && <Settings />}
       </main>

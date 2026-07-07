@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Database, Settings, FileText, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, Database, Settings, FileText, Moon, Sun, Bot } from 'lucide-react';
 
 export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark }) {
   return (
@@ -14,7 +14,7 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark }
           className={`nav-item ${currentTab === 'quote' ? 'active' : ''}`}
           onClick={() => setCurrentTab('quote')}
         >
-          <FileText size={20} />
+          <Bot size={20} />
           <span>AI Assistant</span>
         </button>
         
