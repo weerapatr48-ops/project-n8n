@@ -1,0 +1,359 @@
+{
+  "name": "AI Assistant — Universal Workflow",
+  "nodes": [
+
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-assistant",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "node-webhook",
+      "name": "Webhook (AI Assistant)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [-200, 300],
+      "notes": "รับ POST จากหน้าเว็บ React { prompt: '...' }"
+    },
+
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=คุณคือ AI Assistant ประจำระบบจัดการธุรกิจชื่อ SmartQuote\n\nคุณทำได้ทุกอย่างต่อไปนี้:\n1. ออกใบเสนอราคา (สร้าง/แก้ไขรายการสินค้า)\n2. จัดการฐานข้อมูลลูกค้า (เพิ่ม/ลบ/แก้ไข)\n3. จัดการฐานข้อมูลพนักงาน (เพิ่ม/ลบ/แก้ไข)\n4. จัดการสต็อกสินค้า (เพิ่ม/ตัด)\n5. ตอบคำถามทั่วไป\n\nกฎสำคัญ: ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่นนอก JSON block\n\nSchema ที่ต้องใช้:\n```json\n{\n  \"action\": \"quotation | database | stock | reply\",\n  \"message\": \"ข้อความสั้นๆ บอกผู้ใช้ว่าคุณทำอะไรไป\",\n  \"data\": {\n    // --- ถ้า action = quotation ---\n    \"customerInfo\": {\n      \"name\": \"ชื่อลูกค้า\",\n      \"taxId\": \"เลขภาษี (ถ้ามี)\",\n      \"address\": \"ที่อยู่ (ถ้ามี)\",\n      \"phone\": \"เบอร์โทร (ถ้ามี)\"\n    },\n    \"items\": [\n      { \"description\": \"ชื่อสินค้า/บริการ\", \"quantity\": 1, \"price\": 1000 }\n    ],\n\n    // --- ถ้า action = database ---\n    \"table\": \"customers | employees\",\n    \"operation\": \"add | update | delete\",\n    \"payload\": {\n      \"id\": \"รหัส (ถ้าแก้ไข/ลบ)\",\n      \"name\": \"ชื่อ\",\n      \"phone\": \"เบอร์โทร\",\n      \"email\": \"อีเมล\",\n      \"address\": \"ที่อยู่\",\n      \"taxId\": \"เลขภาษี\",\n      \"type\": \"Customer | Vendor\",\n      \"remark\": \"หมายเหตุ\"\n    },\n\n    // --- ถ้า action = stock ---\n    \"operation\": \"add | deduct\",\n    \"productName\": \"ชื่อสินค้า\",\n    \"amount\": 1,\n    \"unit\": \"หน่วย (ชิ้น/กล่อง/ชุด)\",\n    \"remark\": \"หมายเหตุ\"\n  }\n}\n```\n\nตัวอย่างการตีความ:\n- \"เพิ่มลูกค้าชื่อ สมชาย เบอร์ 081-xxx\" → action=database, table=customers, operation=add\n- \"ลบลูกค้าชื่อ บริษัท A\" → action=database, table=customers, operation=delete\n- \"แก้ไขชื่อพนักงาน สมหญิง เป็น สมศรี\" → action=database, table=employees, operation=update\n- \"ตัดสต็อก iPhone 15 จำนวน 5 เครื่อง\" → action=stock, operation=deduct\n- \"เพิ่มสต็อกสินค้า\" → action=stock, operation=add\n- \"สร้างใบเสนอราคา\" → action=quotation\n\nคำสั่งจากผู้ใช้: {{ $json.body.prompt }}",
+        "options": {}
+      },
+      "id": "node-llm-chain",
+      "name": "Basic LLM Chain (Gemini)",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [60, 300]
+    },
+
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "node-gemini-model",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [60, 520],
+      "notes": "ใส่ Credential: สร้าง Google Gemini API ใหม่ แล้ววาง API Key (AQ... หรือ AIza...)"
+    },
+
+    {
+      "parameters": {
+        "jsCode": "// Parse JSON output จาก Gemini\ntry {\n  let raw = $input.item.json.text || $input.item.json.output || '';\n  // ลบ markdown code block ออก\n  raw = raw.replace(/```json/gi, '').replace(/```/g, '').trim();\n  const parsed = JSON.parse(raw);\n  return { json: parsed };\n} catch (e) {\n  return {\n    json: {\n      action: 'reply',\n      message: 'ขออภัยครับ ผมไม่สามารถประมวลผลคำสั่งได้ในตอนนี้ กรุณาลองใหม่อีกครั้ง',\n      data: null\n    }\n  };\n}"
+      },
+      "id": "node-parse",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 300]
+    },
+
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.action }}",
+        "rules": {
+          "rules": [
+            { "value2": "quotation",  "output": 0 },
+            { "value2": "database",   "output": 1 },
+            { "value2": "stock",      "output": 2 },
+            { "value2": "reply",      "output": 3 }
+          ]
+        },
+        "fallbackOutput": 3
+      },
+      "id": "node-router",
+      "name": "Router (Action Type)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [560, 300]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "// สร้าง Response สำหรับ Quotation\n// ส่งข้อมูลกลับตรงๆ ไปหน้าเว็บได้เลย\nconst payload = $input.item.json;\nreturn {\n  json: {\n    action: 'quotation',\n    message: payload.message || 'ร่างใบเสนอราคาให้คุณเรียบร้อยแล้วครับ ✅',\n    data: payload.data || {}\n  }\n};"
+      },
+      "id": "node-quotation-respond",
+      "name": "Respond: Quotation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [820, 60]
+    },
+
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.data.operation }}",
+        "rules": {
+          "rules": [
+            { "value2": "add",    "output": 0 },
+            { "value2": "update", "output": 1 },
+            { "value2": "delete", "output": 2 }
+          ]
+        },
+        "fallbackOutput": 0
+      },
+      "id": "node-db-router",
+      "name": "Router (DB Operation)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [820, 240]
+    },
+
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.data.table === 'employees' ? 'พนักงาน' : 'ลูกค้า' }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "รหัสลูกค้า/ผู้ขาย":                          "={{ $json.data.payload.id || 'CUST_' + Date.now() }}",
+            "ชื่อลูกค้า/ผู้ขาย":                          "={{ $json.data.payload.name || '' }}",
+            "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย": "={{ $json.data.payload.taxId || '' }}",
+            "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย":               "={{ $json.data.payload.type || 'Customer' }}",
+            "ผู้ติดต่อ":                                   "={{ $json.data.payload.contact || '' }}",
+            "โทรศัพท์":                                    "={{ $json.data.payload.phone || '' }}",
+            "อีเมล":                                       "={{ $json.data.payload.email || '' }}",
+            "ที่อยู่ 1":                                   "={{ $json.data.payload.address || '' }}",
+            "หมายเหตุ":                                    "={{ $json.data.payload.remark || '' }}"
+          },
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "id": "node-db-add",
+      "name": "Sheets: Add Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1080, 120],
+      "notes": "เพิ่มแถวใหม่ในชีตลูกค้าหรือพนักงาน (ตาม table ที่ AI ระบุ)"
+    },
+
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.data.table === 'employees' ? 'พนักงาน' : 'ลูกค้า' }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "รหัสลูกค้า/ผู้ขาย":   "={{ $json.data.payload.id }}",
+            "ชื่อลูกค้า/ผู้ขาย":   "={{ $json.data.payload.name || '' }}",
+            "โทรศัพท์":             "={{ $json.data.payload.phone || '' }}",
+            "อีเมล":               "={{ $json.data.payload.email || '' }}",
+            "ที่อยู่ 1":           "={{ $json.data.payload.address || '' }}",
+            "หมายเหตุ":             "={{ $json.data.payload.remark || '' }}"
+          },
+          "matchingColumns": ["รหัสลูกค้า/ผู้ขาย"]
+        },
+        "options": {}
+      },
+      "id": "node-db-update",
+      "name": "Sheets: Update Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1080, 280],
+      "notes": "อัปเดตแถวที่ตรงกับรหัส ID"
+    },
+
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.data.table === 'employees' ? 'พนักงาน' : 'ลูกค้า' }}",
+          "mode": "name"
+        },
+        "lookupColumn": "ชื่อลูกค้า/ผู้ขาย",
+        "lookupValue": "={{ $json.data.payload.name }}",
+        "options": {}
+      },
+      "id": "node-db-delete",
+      "name": "Sheets: Delete Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1080, 440],
+      "notes": "ลบแถวที่ตรงกับชื่อ (ควรเพิ่มการยืนยันก่อนลบในงานจริง)"
+    },
+
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.data.operation }}",
+        "rules": {
+          "rules": [
+            { "value2": "add",    "output": 0 },
+            { "value2": "deduct", "output": 1 }
+          ]
+        },
+        "fallbackOutput": 0
+      },
+      "id": "node-stock-router",
+      "name": "Router (Stock Operation)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [820, 500]
+    },
+
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "สินค้า",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ชื่อสินค้า": "={{ $json.data.productName }}",
+            "จำนวน":     "={{ $json.data.amount }}",
+            "หน่วย":     "={{ $json.data.unit || 'ชิ้น' }}",
+            "หมายเหตุ":  "=เพิ่มสต็อก {{ $json.data.amount }} {{ $json.data.unit || 'ชิ้น' }} เมื่อ {{ $now }}"
+          },
+          "matchingColumns": ["ชื่อสินค้า"]
+        },
+        "options": {}
+      },
+      "id": "node-stock-add",
+      "name": "Sheets: Add Stock",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1080, 440],
+      "notes": "เพิ่มสต็อก - ปรับชื่อคอลัมน์ให้ตรงกับชีตสินค้าของคุณ"
+    },
+
+    {
+      "parameters": {
+        "jsCode": "// ตัดสต็อก — อ่านค่าเดิม แล้วลบออก\n// หมายเหตุ: ในงานจริงต้องอ่านค่าปัจจุบันก่อน แล้วค่อยคำนวณ\n// นี่เป็น Logic ตัวอย่าง สามารถปรับให้ Read ก่อน Update ได้\nconst productName = $json.data.productName;\nconst amount = $json.data.amount;\nreturn {\n  json: {\n    ...$json,\n    deductInfo: {\n      productName,\n      amount,\n      note: `ตัดสต็อก ${amount} ${$json.data.unit || 'ชิ้น'} เมื่อ ${new Date().toLocaleString('th-TH')}`\n    }\n  }\n};"
+      },
+      "id": "node-stock-deduct-prep",
+      "name": "Prepare Deduct",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 580]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "// รวม response จากทุก branch กลับมาเป็น format เดียวกัน\n// และส่งกลับไปหน้าเว็บ React\nconst input = $input.item.json;\n\n// ถ้ามาจาก Google Sheets node จะมี updatedRows หรือ appendedRow\nconst originalAction = input.action || 'database';\nconst originalMsg = input.message || 'ดำเนินการเรียบร้อยแล้วครับ ✅';\n\nreturn {\n  json: {\n    action: originalAction,\n    message: originalMsg,\n    data: input.data || null\n  }\n};"
+      },
+      "id": "node-db-respond",
+      "name": "Respond: Database/Stock",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 360]
+    },
+
+    {
+      "parameters": {
+        "jsCode": "// ตอบกลับข้อความทั่วไป\nreturn {\n  json: {\n    action: 'reply',\n    message: $input.item.json.message || 'มีอะไรให้ผมช่วยไหมครับ?',\n    data: null\n  }\n};"
+      },
+      "id": "node-reply-respond",
+      "name": "Respond: Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [820, 680]
+    },
+
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "node-final-response",
+      "name": "Send Response to React",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1580, 300]
+    }
+
+  ],
+
+  "connections": {
+    "Webhook (AI Assistant)": {
+      "main": [ [ { "node": "Basic LLM Chain (Gemini)", "type": "main", "index": 0 } ] ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [ [ { "node": "Basic LLM Chain (Gemini)", "type": "ai_languageModel", "index": 0 } ] ]
+    },
+    "Basic LLM Chain (Gemini)": {
+      "main": [ [ { "node": "Parse AI Response", "type": "main", "index": 0 } ] ]
+    },
+    "Parse AI Response": {
+      "main": [ [ { "node": "Router (Action Type)", "type": "main", "index": 0 } ] ]
+    },
+    "Router (Action Type)": {
+      "main": [
+        [ { "node": "Respond: Quotation",      "type": "main", "index": 0 } ],
+        [ { "node": "Router (DB Operation)",   "type": "main", "index": 0 } ],
+        [ { "node": "Router (Stock Operation)","type": "main", "index": 0 } ],
+        [ { "node": "Respond: Reply",          "type": "main", "index": 0 } ]
+      ]
+    },
+    "Router (DB Operation)": {
+      "main": [
+        [ { "node": "Sheets: Add Row",    "type": "main", "index": 0 } ],
+        [ { "node": "Sheets: Update Row", "type": "main", "index": 0 } ],
+        [ { "node": "Sheets: Delete Row", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Sheets: Add Row":    { "main": [ [ { "node": "Respond: Database/Stock", "type": "main", "index": 0 } ] ] },
+    "Sheets: Update Row": { "main": [ [ { "node": "Respond: Database/Stock", "type": "main", "index": 0 } ] ] },
+    "Sheets: Delete Row": { "main": [ [ { "node": "Respond: Database/Stock", "type": "main", "index": 0 } ] ] },
+    "Router (Stock Operation)": {
+      "main": [
+        [ { "node": "Sheets: Add Stock",  "type": "main", "index": 0 } ],
+        [ { "node": "Prepare Deduct",     "type": "main", "index": 0 } ]
+      ]
+    },
+    "Sheets: Add Stock": { "main": [ [ { "node": "Respond: Database/Stock", "type": "main", "index": 0 } ] ] },
+    "Prepare Deduct":    { "main": [ [ { "node": "Respond: Database/Stock", "type": "main", "index": 0 } ] ] },
+    "Respond: Quotation":       { "main": [ [ { "node": "Send Response to React", "type": "main", "index": 0 } ] ] },
+    "Respond: Database/Stock":  { "main": [ [ { "node": "Send Response to React", "type": "main", "index": 0 } ] ] },
+    "Respond: Reply":           { "main": [ [ { "node": "Send Response to React", "type": "main", "index": 0 } ] ] }
+  }
+}
