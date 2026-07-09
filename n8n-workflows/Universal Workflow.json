@@ -13,8 +13,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -4176,
-        48
+        -3936,
+        112
       ],
       "webhookId": "a3e7b740-8529-4d05-a6a0-135f3e24abc0"
     },
@@ -29,8 +29,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -4176,
-        -144
+        -3936,
+        -80
       ],
       "webhookId": "01692a64-937b-40b7-95dc-e2f25a6a2514"
     },
@@ -45,8 +45,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        -2640,
-        -256
+        -2864,
+        -304
       ],
       "webhookId": "f1c0eb8c-c2db-4171-97e3-fa0badf9da92"
     },
@@ -285,8 +285,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -2432,
-        -256
+        -2656,
+        -304
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -306,8 +306,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        -2640,
-        -48
+        -2864,
+        -96
       ],
       "webhookId": "3c373a39-ddd9-49ee-9103-04aaf7323775"
     },
@@ -332,8 +332,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -2432,
-        -48
+        -2656,
+        -96
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -356,8 +356,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -2240,
-        -48
+        -2464,
+        -96
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -375,8 +375,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2032,
-        -48
+        -2256,
+        -96
       ]
     },
     {
@@ -391,8 +391,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        -2640,
-        144
+        -2864,
+        96
       ],
       "webhookId": "448bf917-9b79-4a96-b582-883d34943957"
     },
@@ -417,8 +417,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -2432,
-        144
+        -2656,
+        96
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -436,8 +436,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2240,
-        144
+        -2464,
+        96
       ]
     },
     {
@@ -452,8 +452,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        -2640,
-        352
+        -2864,
+        304
       ],
       "webhookId": "cb417ca7-bfa2-41c8-88b8-0fd9ddda7038"
     },
@@ -536,8 +536,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -2432,
-        352
+        -2656,
+        304
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -555,8 +555,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2240,
-        352
+        -2464,
+        304
       ]
     },
     {
@@ -571,8 +571,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        -2640,
-        544
+        -2864,
+        496
       ],
       "webhookId": "225f4c7a-0e68-4f54-abf4-645f5d9cf9af"
     },
@@ -607,8 +607,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -2432,
-        544
+        -2656,
+        496
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -626,8 +626,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2240,
-        544
+        -2464,
+        496
       ]
     },
     {
@@ -641,8 +641,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -2768,
-        -624
+        -2864,
+        -512
       ],
       "webhookId": "26c5390c-f5cb-47a6-85dc-cb9a98597691"
     },
@@ -662,8 +662,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -2560,
-        -624
+        -2656,
+        -512
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -688,8 +688,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -2368,
-        -624
+        -2464,
+        -512
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -714,8 +714,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -2160,
-        -624
+        -2256,
+        -512
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -736,8 +736,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -1952,
-        640
+        -2000,
+        -288
       ],
       "webhookId": "ee7ef2c8-0a79-41ea-9caa-2a84b7cbd2c2",
       "notes": "รับ POST จากหน้าเว็บ React { prompt: '...' }"
@@ -752,8 +752,8 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.4,
       "position": [
-        -1696,
-        640
+        -1792,
+        -288
       ]
     },
     {
@@ -768,8 +768,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -1696,
-        864
+        -1792,
+        -112
       ],
       "credentials": {
         "googlePalmApi": {
@@ -788,8 +788,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1424,
-        640
+        -1472,
+        -288
       ]
     },
     {
@@ -822,8 +822,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
       "position": [
-        -1184,
-        640
+        -1280,
+        -320
       ]
     },
     {
@@ -835,8 +835,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -928,
-        400
+        -1040,
+        -576
       ]
     },
     {
@@ -865,8 +865,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
       "position": [
-        -928,
-        592
+        -1040,
+        -336
       ]
     },
     {
@@ -1143,8 +1143,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -656,
-        464
+        -800,
+        -480
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1442,8 +1442,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -656,
-        624
+        -800,
+        -320
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1474,8 +1474,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -656,
-        784
+        -800,
+        -160
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1507,8 +1507,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
       "position": [
-        -928,
-        848
+        -1040,
+        -96
       ]
     },
     {
@@ -1743,8 +1743,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -656,
-        976
+        -800,
+        16
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1763,8 +1763,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -656,
-        1152
+        -800,
+        192
       ]
     },
     {
@@ -1776,8 +1776,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -400,
-        704
+        -576,
+        -320
       ]
     },
     {
@@ -1789,8 +1789,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -928,
-        1216
+        -1040,
+        352
       ]
     },
     {
@@ -1817,8 +1817,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        -160,
-        640
+        -224,
+        -320
       ]
     },
     {
@@ -1833,8 +1833,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -4176,
-        256
+        -3936,
+        320
       ],
       "webhookId": "84d9b089-22d0-4d17-b1d9-e8a48e34ae7d"
     },
@@ -1857,8 +1857,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -3984,
-        256
+        -3744,
+        320
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1887,8 +1887,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -3728,
-        -400
+        -3488,
+        -336
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1909,8 +1909,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -4176,
-        -384
+        -3936,
+        -320
       ],
       "webhookId": "a148f252-df0c-4a9f-ab7c-067eb6d95b6f"
     },
@@ -1935,8 +1935,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
       "position": [
-        -3984,
-        -416
+        -3744,
+        -352
       ]
     },
     {
@@ -2241,8 +2241,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -3728,
-        -560
+        -3488,
+        -496
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2272,8 +2272,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -3984,
-        -144
+        -3744,
+        -80
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2376,8 +2376,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -3984,
-        48
+        -3744,
+        112
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -2840,7 +2840,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "370c2bff-2b31-44a8-bab1-5b53d2fd33b5",
+  "versionId": "66f0b4f7-936b-431a-86d2-07c64b901093",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "9b9d3148ecc4dc5db52cdb82946e6bceeafb35f3f7da0f61a7e079618eddb113"
