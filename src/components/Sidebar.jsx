@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LayoutDashboard, Database, Settings, FileText, Moon, Sun, Bot, Package, LogOut, FileSignature } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, user, onLogout }) {
   const { canAccess } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo">
-        <LayoutDashboard size={28} />
-        SmartQuote AI
-      </div>
+    <>
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <LayoutDashboard size={28} />
+          SmartQuote AI
+        </div>
       
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
         {canAccess('dashboard') && (
@@ -84,12 +86,63 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
             </button>
           )}
 
-          <button className="nav-item" onClick={onLogout} style={{ color: 'var(--danger)' }}>
+          <button className="nav-item" onClick={() => setShowLogoutConfirm(true)} style={{ color: 'var(--danger)' }}>
             <LogOut size={20} />
             <span>ออกจากระบบ</span>
           </button>
         </div>
       </nav>
     </aside>
+
+    {showLogoutConfirm && (
+      <div style={styles.modalOverlay}>
+        <div className="glass-card" style={styles.modalCard}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', color: 'var(--danger)' }}>
+            <LogOut size={28} />
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>ยืนยันการออกจากระบบ</h3>
+          </div>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?</p>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+            <button 
+              className="btn-primary" 
+              style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+              onClick={() => setShowLogoutConfirm(false)}
+            >
+              ยกเลิก
+            </button>
+            <button 
+              className="btn-primary" 
+              style={{ background: 'var(--danger)' }}
+              onClick={() => {
+                setShowLogoutConfirm(false);
+                onLogout();
+              }}
+            >
+              ออกจากระบบ
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
+
+const styles = {
+  modalOverlay: {
+    position: 'fixed',
+    top: 0, left: 0, right: 0, bottom: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    backdropFilter: 'blur(4px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999
+  },
+  modalCard: {
+    width: '90%',
+    maxWidth: '400px',
+    background: 'var(--bg-secondary)',
+    padding: '2rem'
+  }
+};

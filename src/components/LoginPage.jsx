@@ -277,8 +277,8 @@ const styles = {
   },
   card: {
     width: '100%',
-    maxWidth: '520px',
-    padding: '2rem',
+    maxWidth: '460px',
+    padding: '1.75rem',
     background: 'rgba(255, 255, 255, 0.1)',
     backdropFilter: 'blur(20px)',
     border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -289,17 +289,17 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    marginBottom: '2rem'
+    marginBottom: '1rem'
   },
   logoCircle: {
-    width: '80px',
-    height: '80px',
+    width: '60px',
+    height: '60px',
     borderRadius: '50%',
     background: 'rgba(255, 255, 255, 0.9)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '1rem',
+    marginBottom: '0.5rem',
     boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
   },
   tabs: {
@@ -307,11 +307,11 @@ const styles = {
     background: 'rgba(0, 0, 0, 0.2)',
     borderRadius: 'var(--radius-lg)',
     padding: '0.25rem',
-    marginBottom: '2rem'
+    marginBottom: '1rem'
   },
   tab: {
     flex: 1,
-    padding: '0.75rem',
+    padding: '0.5rem',
     border: 'none',
     background: 'transparent',
     color: 'rgba(255, 255, 255, 0.8)',
@@ -334,10 +334,10 @@ const styles = {
   gridRow: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
-    gap: '1rem'
+    gap: '0.75rem'
   },
   compactGroup: {
-    marginBottom: '1rem'
+    marginBottom: '0.75rem'
   },
   inputWrapper: {
     position: 'relative',
@@ -367,9 +367,9 @@ const styles = {
   submitBtn: {
     width: '100%',
     justifyContent: 'center',
-    marginTop: '1rem',
-    padding: '1rem',
-    fontSize: '1.1rem'
+    marginTop: '0.5rem',
+    padding: '0.75rem',
+    fontSize: '1rem'
   },
   errorBanner: {
     background: 'rgba(239, 68, 68, 0.2)',

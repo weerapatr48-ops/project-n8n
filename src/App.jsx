@@ -12,13 +12,21 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 function MainApp() {
   const { auth, logout, loading } = useAuth();
   const [currentTab, setCurrentTab] = useState('dashboard');
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    const savedTheme = localStorage.getItem('appTheme');
+    if (savedTheme) {
+      return savedTheme === 'dark';
+    }
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
 
   useEffect(() => {
     if (isDark) {
       document.body.classList.add('dark');
+      localStorage.setItem('appTheme', 'dark');
     } else {
       document.body.classList.remove('dark');
+      localStorage.setItem('appTheme', 'light');
     }
   }, [isDark]);
 
