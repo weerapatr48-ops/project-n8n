@@ -313,12 +313,19 @@
     },
     {
       "parameters": {
-        "operation": "getAll",
         "documentId": {
           "__rl": true,
           "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
           "mode": "id"
-        }
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "customer",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit#gid=0"
+        },
+        "options": {}
       },
       "id": "9e9fe6f8-6353-4c3e-a3aa-a5eb768ac20c",
       "name": "Read Customers",
@@ -2833,7 +2840,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "862e34de-5b18-49ca-80b2-41700e564e6e",
+  "versionId": "370c2bff-2b31-44a8-bab1-5b53d2fd33b5",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "9b9d3148ecc4dc5db52cdb82946e6bceeafb35f3f7da0f61a7e079618eddb113"
