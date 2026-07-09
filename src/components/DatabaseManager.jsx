@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, RefreshCw, AlertTriangle, Check, X } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const getN8nUrl = () => {
   try {
@@ -23,7 +24,14 @@ export default function DatabaseManager() {
     setIsLoading(true);
     setErrorMsg('');
     try {
-      const response = await fetch(`${getN8nUrl()}/webhook/project`, { method: 'GET' });
+      const response = await fetch(`${getN8nUrl()}/webhook/project?t=${Date.now()}`, { 
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       
       if (response.ok) {
         const result = await response.json();
@@ -55,6 +63,13 @@ export default function DatabaseManager() {
           limit: row['วงเงิน'] || row.limit || '-',
           remark: row['หมายเหตุ'] || row.remark || '-',
         })).filter(row => row.name && row.name !== '-');
+
+        // Sort by ID (Customer ID)
+        mappedData.sort((a, b) => {
+          const idA = (a.id || '').toString();
+          const idB = (b.id || '').toString();
+          return idA.localeCompare(idB, 'th', { numeric: true });
+        });
         
         setData(mappedData);
       } else {
@@ -84,16 +99,31 @@ export default function DatabaseManager() {
     setEditForm({});
   };
 
+  const generateNextId = () => {
+    const caIds = data
+      .map(r => r.id?.trim())
+      .filter(id => /^CA\d{3}$/i.test(id || ''))
+      .map(id => parseInt(id.replace(/CA/i, ''), 10))
+      .filter(num => !isNaN(num));
+    
+    if (caIds.length > 0) {
+      const maxId = Math.max(...caIds);
+      return `CA${String(maxId + 1).padStart(3, '0')}`;
+    }
+    return 'CA001';
+  };
+
   const handleAdd = () => {
     const newId = `NEW_${Date.now()}`;
+    const generatedId = generateNextId();
     const newRow = {
-      id: newId, name: '', taxId: '', type: 'Customer', contact: '',
+      id: newId, name: '', taxId: '', type: 'Credit', contact: '',
       phone: '', email: '', address: '', district: '', province: '',
       credit: '', limit: '', remark: '', isNew: true, rowNumber: 999999
     };
     setData([newRow, ...data]);
     setEditingId(newId);
-    setEditForm({ ...newRow, id: '' }); 
+    setEditForm({ ...newRow, id: generatedId }); 
   };
 
   const handleEditChange = (field, value) => {
@@ -101,6 +131,14 @@ export default function DatabaseManager() {
   };
 
   const handleSave = async () => {
+    if (!editForm.id || !editForm.id.trim()) {
+      Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกรหัสลูกค้า (ID)' });
+      return;
+    }
+    if (!editForm.name || !editForm.name.trim()) {
+      Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกชื่อลูกค้า (Company Name)' });
+      return;
+    }
     setIsSaving(true);
     try {
       const response = await fetch(`${getN8nUrl()}/webhook/database-action`, {
@@ -114,36 +152,47 @@ export default function DatabaseManager() {
         fetchCustomers(); 
       } else {
         const errorText = await response.text();
-        alert(`บันทึกไม่สำเร็จ:\n${errorText.substring(0, 300)}`);
+        Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: errorText.substring(0, 300) });
       }
     } catch (error) {
-      alert(`เชื่อมต่อไม่ได้: ${error.message}`);
+      Swal.fire({ icon: 'error', title: 'เชื่อมต่อไม่ได้', text: error.message });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDelete = async (row) => {
-    if (window.confirm(`ลบ ${row.name} ใช่หรือไม่?`)) {
-      setIsSaving(true);
-      try {
-        const response = await fetch(`${getN8nUrl()}/webhook/database-action`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'delete', data: { id: row.id, rowNumber: row.rowNumber } })
-        });
-        
-        if (response.ok) fetchCustomers();
-        else {
-          const errorText = await response.text();
-          alert(`ลบไม่สำเร็จ:\n${errorText.substring(0, 300)}`);
+  const handleDelete = (row) => {
+    Swal.fire({
+      title: 'ยืนยันการลบ',
+      text: `คุณต้องการลบ ${row.name} ใช่หรือไม่?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'ใช่, ลบเลย',
+      cancelButtonText: 'ยกเลิก'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setIsSaving(true);
+        try {
+          const response = await fetch(`${getN8nUrl()}/webhook/database-action`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', data: { id: row.id, rowNumber: row.rowNumber } })
+          });
+          
+          if (response.ok) fetchCustomers();
+          else {
+            const errorText = await response.text();
+            Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ', text: errorText.substring(0, 300) });
+          }
+        } catch (error) {
+          Swal.fire({ icon: 'error', title: 'เชื่อมต่อไม่ได้', text: error.message });
+        } finally {
+          setIsSaving(false);
         }
-      } catch (error) {
-        alert(`เชื่อมต่อไม่ได้: ${error.message}`);
-      } finally {
-        setIsSaving(false);
       }
-    }
+    });
   };
 
   return (
@@ -232,6 +281,10 @@ export default function DatabaseManager() {
           transition: all 0.2s;
           font-size: 0.9rem;
           font-family: inherit;
+        }
+        .minimal-input option {
+          background-color: var(--bg-secondary);
+          color: var(--text-primary);
         }
         .minimal-input:focus {
           border-bottom-color: var(--accent-primary);
@@ -362,8 +415,8 @@ export default function DatabaseManager() {
                       <td><input type="text" className="minimal-input" style={{ width: '120px' }} value={editForm.taxId} onChange={(e) => handleEditChange('taxId', e.target.value)} placeholder="Tax ID" /></td>
                       <td>
                         <select className="minimal-input" style={{ width: '100px', cursor: 'pointer' }} value={editForm.type} onChange={(e) => handleEditChange('type', e.target.value)}>
-                          <option value="Customer">Customer</option>
-                          <option value="Vendor">Vendor</option>
+                          <option value="Credit">Credit</option>
+                          <option value="Vender">Vender</option>
                         </select>
                       </td>
                       <td><input type="text" className="minimal-input" style={{ width: '100px' }} value={editForm.contact} onChange={(e) => handleEditChange('contact', e.target.value)} placeholder="Name" /></td>
@@ -391,8 +444,8 @@ export default function DatabaseManager() {
                           fontWeight: 500, 
                           padding: '0.2rem 0.6rem', 
                           borderRadius: '99px',
-                          background: row.type.includes('Customer') ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-                          color: row.type.includes('Customer') ? 'var(--success)' : '#3b82f6'
+                          background: row.type.includes('Credit') || row.type.includes('Customer') ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                          color: row.type.includes('Credit') || row.type.includes('Customer') ? 'var(--success)' : '#3b82f6'
                         }}>
                           {row.type}
                         </span>

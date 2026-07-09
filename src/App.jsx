@@ -3,9 +3,15 @@ import Sidebar from './components/Sidebar';
 import AIAssistant from './components/AIAssistant';
 import DatabaseManager from './components/DatabaseManager';
 import Settings from './components/Settings';
+import LoginPage from './components/LoginPage';
+import Dashboard from './components/Dashboard';
+import QuotationMaker from './components/QuotationMaker';
+import StockManager from './components/StockManager';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
-function App() {
-  const [currentTab, setCurrentTab] = useState('quote');
+function MainApp() {
+  const { auth, logout, loading } = useAuth();
+  const [currentTab, setCurrentTab] = useState('dashboard');
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -16,16 +22,40 @@ function App() {
     }
   }, [isDark]);
 
+  if (loading) return null;
+
+  if (!auth?.token) {
+    return <LoginPage />;
+  }
+
   return (
     <div className="app-container">
-      <Sidebar currentTab={currentTab} setCurrentTab={setCurrentTab} isDark={isDark} setIsDark={setIsDark} />
+      <Sidebar 
+        currentTab={currentTab} 
+        setCurrentTab={setCurrentTab} 
+        isDark={isDark} 
+        setIsDark={setIsDark} 
+        user={auth.user}
+        onLogout={logout}
+      />
       
       <main className="main-content">
-        {currentTab === 'quote' && <AIAssistant />}
+        {currentTab === 'dashboard' && <Dashboard />}
+        {currentTab === 'quote_maker' && <QuotationMaker />}
+        {currentTab === 'stock' && <StockManager />}
         {currentTab === 'database' && <DatabaseManager />}
+        {currentTab === 'ai' && <AIAssistant />}
         {currentTab === 'settings' && <Settings />}
       </main>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }
 

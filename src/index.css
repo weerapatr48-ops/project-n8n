@@ -353,3 +353,10 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: .5; }
 }
+
+/* Global dark mode fix for select options */
+option {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+

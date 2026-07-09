@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Building2, Link as LinkIcon, Image as ImageIcon, RefreshCw } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const getN8nUrl = () => {
   try {
@@ -42,7 +43,7 @@ export default function Settings() {
     
     setIsLoading(true);
     try {
-      const response = await fetch(`${url}/webhook/settings`);
+      const response = await fetch(`${url}/webhook/settings?t=${Date.now()}`);
       if (response.ok) {
         const result = await response.json();
         const data = Array.isArray(result) && result[0]?.json ? result[0].json : (Array.isArray(result) ? result[0] : result);
@@ -58,7 +59,7 @@ export default function Settings() {
           localStorage.setItem('companyProfile', JSON.stringify(newSettings));
         }
       } else {
-        alert(`ดึงข้อมูลไม่สำเร็จ (Status: ${response.status}) โปรดตรวจสอบว่าเปิด Active ใน n8n หรือยัง`);
+        Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: `ดึงข้อมูลไม่สำเร็จ (Status: ${response.status}) โปรดตรวจสอบว่าเปิด Active ใน n8n หรือยัง` });
       }
     } catch (e) {
       console.log('Failed to fetch settings from n8n');
@@ -96,11 +97,11 @@ export default function Settings() {
         body: JSON.stringify(settings)
       });
       if (!response.ok) {
-        alert(`บันทึกไม่สำเร็จ (Status: ${response.status}) โปรดตรวจสอบ n8n`);
+        Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: `บันทึกไม่สำเร็จ (Status: ${response.status}) โปรดตรวจสอบ n8n` });
         return; // หยุดการทำงานถ้าบันทึกไม่สำเร็จ
       }
     } catch (e) {
-      alert('เกิดข้อผิดพลาดในการเชื่อมต่อ n8n');
+      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ n8n' });
       return;
     }
 
