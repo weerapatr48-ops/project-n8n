@@ -115,78 +115,79 @@ export default function LoginPage({ onLoginSuccess }) {
           {error && <div style={styles.errorBanner}>{error}</div>}
           {successMsg && <div style={styles.successBanner}>{successMsg}</div>}
 
-          {!isLoginTab && (
-            <div className="input-group">
-              <label style={styles.loginLabel}>ชื่อ-นามสกุล</label>
-              <div style={styles.inputWrapper}>
-                <User size={18} style={styles.inputIcon} />
-                <input 
-                  type="text" 
-                  name="name"
-                  className="input-field" 
-                  style={styles.inputWithIcon}
-                  placeholder="John Doe"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required={!isLoginTab}
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="input-group">
-            <label style={styles.loginLabel}>อีเมล</label>
-            <div style={styles.inputWrapper}>
-              <Mail size={18} style={styles.inputIcon} />
-              <input 
-                type="email" 
-                name="email"
-                className="input-field" 
-                style={styles.inputWithIcon}
-                placeholder="email@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="input-group">
-            <label style={styles.loginLabel}>รหัสผ่าน</label>
-            <div style={styles.inputWrapper}>
-              <Lock size={18} style={styles.inputIcon} />
-              <input 
-                type="password" 
-                name="password"
-                className="input-field" 
-                style={styles.inputWithIcon}
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          {!isLoginTab && (
+          {!isLoginTab ? (
             <>
-              <div className="input-group">
-                <label style={styles.loginLabel}>ยืนยันรหัสผ่าน</label>
-                <div style={styles.inputWrapper}>
-                  <Lock size={18} style={styles.inputIcon} />
-                  <input 
-                    type="password" 
-                    name="confirmPassword"
-                    className="input-field" 
-                    style={styles.inputWithIcon}
-                    placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required={!isLoginTab}
-                  />
+              <div style={styles.gridRow}>
+                <div className="input-group" style={styles.compactGroup}>
+                  <label style={styles.loginLabel}>ชื่อ-นามสกุล</label>
+                  <div style={styles.inputWrapper}>
+                    <User size={18} style={styles.inputIcon} />
+                    <input 
+                      type="text" 
+                      name="name"
+                      className="input-field" 
+                      style={styles.inputWithIcon}
+                      placeholder="John Doe"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="input-group" style={styles.compactGroup}>
+                  <label style={styles.loginLabel}>อีเมล</label>
+                  <div style={styles.inputWrapper}>
+                    <Mail size={18} style={styles.inputIcon} />
+                    <input 
+                      type="email" 
+                      name="email"
+                      className="input-field" 
+                      style={styles.inputWithIcon}
+                      placeholder="email@example.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="input-group">
+
+              <div style={styles.gridRow}>
+                <div className="input-group" style={styles.compactGroup}>
+                  <label style={styles.loginLabel}>รหัสผ่าน</label>
+                  <div style={styles.inputWrapper}>
+                    <Lock size={18} style={styles.inputIcon} />
+                    <input 
+                      type="password" 
+                      name="password"
+                      className="input-field" 
+                      style={styles.inputWithIcon}
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="input-group" style={styles.compactGroup}>
+                  <label style={styles.loginLabel}>ยืนยันรหัสผ่าน</label>
+                  <div style={styles.inputWrapper}>
+                    <Lock size={18} style={styles.inputIcon} />
+                    <input 
+                      type="password" 
+                      name="confirmPassword"
+                      className="input-field" 
+                      style={styles.inputWithIcon}
+                      placeholder="••••••••"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="input-group" style={styles.compactGroup}>
                 <label style={styles.loginLabel}>สิทธิ์การใช้งาน</label>
                 <div style={styles.inputWrapper}>
                   <Briefcase size={18} style={styles.inputIcon} />
@@ -201,6 +202,41 @@ export default function LoginPage({ onLoginSuccess }) {
                     <option value="manager">ผู้จัดการ (Manager)</option>
                     <option value="admin">ผู้ดูแลระบบ (Admin)</option>
                   </select>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="input-group" style={styles.compactGroup}>
+                <label style={styles.loginLabel}>อีเมล</label>
+                <div style={styles.inputWrapper}>
+                  <Mail size={18} style={styles.inputIcon} />
+                  <input 
+                    type="email" 
+                    name="email"
+                    className="input-field" 
+                    style={styles.inputWithIcon}
+                    placeholder="email@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="input-group" style={styles.compactGroup}>
+                <label style={styles.loginLabel}>รหัสผ่าน</label>
+                <div style={styles.inputWrapper}>
+                  <Lock size={18} style={styles.inputIcon} />
+                  <input 
+                    type="password" 
+                    name="password"
+                    className="input-field" 
+                    style={styles.inputWithIcon}
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
               </div>
             </>
@@ -233,19 +269,20 @@ const styles = {
     justifyContent: 'center',
     background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)',
     padding: '2rem',
-    position: 'absolute',
+    position: 'fixed',
     top: 0, left: 0, right: 0, bottom: 0,
-    zIndex: 1000
+    zIndex: 1000,
+    overflowY: 'auto'
   },
   card: {
     width: '100%',
-    maxWidth: '480px',
-    padding: '2.5rem',
+    maxWidth: '520px',
+    padding: '2rem',
     background: 'rgba(255, 255, 255, 0.1)',
     backdropFilter: 'blur(20px)',
     border: '1px solid rgba(255, 255, 255, 0.2)',
     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-    color: '#fff' // Override for dark gradient bg
+    margin: 'auto'
   },
   header: {
     display: 'flex',
@@ -291,8 +328,15 @@ const styles = {
   },
   form: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem'
+    flexDirection: 'column'
+  },
+  gridRow: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '1rem'
+  },
+  compactGroup: {
+    marginBottom: '1rem'
   },
   inputWrapper: {
     position: 'relative',
