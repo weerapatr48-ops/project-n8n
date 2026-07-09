@@ -92,8 +92,8 @@ export default function LoginPage({ onLoginSuccess }) {
           <div style={styles.logoCircle}>
             <ShieldCheck size={40} color="var(--accent-primary)" />
           </div>
-          <h1 className="title-lg" style={{ textAlign: 'center', marginBottom: '0.25rem' }}>SmartQuote AI</h1>
-          <p className="subtitle" style={{ textAlign: 'center', marginBottom: 0 }}>ระบบบริหารจัดการธุรกิจอัจฉริยะ</p>
+          <h1 className="title-lg" style={{ textAlign: 'center', marginBottom: '0.25rem', color: '#fff', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>SmartQuote AI</h1>
+          <p className="subtitle" style={{ textAlign: 'center', marginBottom: 0, color: 'rgba(255,255,255,0.9)' }}>ระบบบริหารจัดการธุรกิจอัจฉริยะ</p>
         </div>
 
         <div style={styles.tabs}>
@@ -117,7 +117,7 @@ export default function LoginPage({ onLoginSuccess }) {
 
           {!isLoginTab && (
             <div className="input-group">
-              <label className="input-label">ชื่อ-นามสกุล</label>
+              <label style={styles.loginLabel}>ชื่อ-นามสกุล</label>
               <div style={styles.inputWrapper}>
                 <User size={18} style={styles.inputIcon} />
                 <input 
@@ -135,7 +135,7 @@ export default function LoginPage({ onLoginSuccess }) {
           )}
 
           <div className="input-group">
-            <label className="input-label">อีเมล</label>
+            <label style={styles.loginLabel}>อีเมล</label>
             <div style={styles.inputWrapper}>
               <Mail size={18} style={styles.inputIcon} />
               <input 
@@ -152,7 +152,7 @@ export default function LoginPage({ onLoginSuccess }) {
           </div>
 
           <div className="input-group">
-            <label className="input-label">รหัสผ่าน</label>
+            <label style={styles.loginLabel}>รหัสผ่าน</label>
             <div style={styles.inputWrapper}>
               <Lock size={18} style={styles.inputIcon} />
               <input 
@@ -171,7 +171,7 @@ export default function LoginPage({ onLoginSuccess }) {
           {!isLoginTab && (
             <>
               <div className="input-group">
-                <label className="input-label">ยืนยันรหัสผ่าน</label>
+                <label style={styles.loginLabel}>ยืนยันรหัสผ่าน</label>
                 <div style={styles.inputWrapper}>
                   <Lock size={18} style={styles.inputIcon} />
                   <input 
@@ -187,7 +187,7 @@ export default function LoginPage({ onLoginSuccess }) {
                 </div>
               </div>
               <div className="input-group">
-                <label className="input-label">สิทธิ์การใช้งาน</label>
+                <label style={styles.loginLabel}>สิทธิ์การใช้งาน</label>
                 <div style={styles.inputWrapper}>
                   <Briefcase size={18} style={styles.inputIcon} />
                   <select 
@@ -276,12 +276,13 @@ const styles = {
     padding: '0.75rem',
     border: 'none',
     background: 'transparent',
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontWeight: '600',
     borderRadius: 'calc(var(--radius-lg) - 4px)',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
-    fontFamily: 'inherit'
+    fontFamily: 'inherit',
+    textShadow: '0 1px 2px rgba(0,0,0,0.3)'
   },
   activeTab: {
     background: 'rgba(255, 255, 255, 0.2)',
@@ -298,6 +299,13 @@ const styles = {
     display: 'flex',
     alignItems: 'center'
   },
+  loginLabel: {
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    color: '#ffffff',
+    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+    marginBottom: '0.25rem'
+  },
   inputIcon: {
     position: 'absolute',
     left: '1rem',
@@ -306,9 +314,10 @@ const styles = {
   inputWithIcon: {
     width: '100%',
     paddingLeft: '3rem',
-    background: 'rgba(255,255,255,0.9)',
-    color: '#000',
-    border: 'none'
+    background: 'rgba(255,255,255,0.95)',
+    color: '#1e293b',
+    border: '1px solid rgba(255,255,255,0.2)',
+    fontWeight: '500'
   },
   submitBtn: {
     width: '100%',
