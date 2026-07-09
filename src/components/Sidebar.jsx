@@ -71,10 +71,36 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user?.role}</p>
           </div>
 
-          <button className="nav-item" onClick={() => setIsDark(!isDark)}>
-            {isDark ? <Sun size={20} /> : <Moon size={20} />}
-            <span>{isDark ? 'โหมดสว่าง' : 'โหมดมืด'}</span>
-          </button>
+          <div 
+            className="nav-item" 
+            onClick={() => setIsDark(!isDark)} 
+            style={{ justifyContent: 'space-between', cursor: 'pointer' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {isDark ? <Moon size={20} /> : <Sun size={20} />}
+              <span>{isDark ? 'โหมดมืด' : 'โหมดสว่าง'}</span>
+            </div>
+            <div style={{
+              width: '40px',
+              height: '22px',
+              background: isDark ? 'var(--accent-primary)' : 'var(--text-muted)',
+              borderRadius: '20px',
+              position: 'relative',
+              transition: 'background 0.3s'
+            }}>
+              <div style={{
+                width: '18px',
+                height: '18px',
+                background: '#fff',
+                borderRadius: '50%',
+                position: 'absolute',
+                top: '2px',
+                left: isDark ? '20px' : '2px',
+                transition: 'left 0.3s',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+              }} />
+            </div>
+          </div>
           
           {canAccess('settings') && (
             <button 
