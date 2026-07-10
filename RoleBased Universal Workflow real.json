@@ -2473,20 +2473,25 @@
             {
               "value2": "insert",
               "output": 0,
-              "operation": "equal"
+              "operation": "equal",
+              "value1": "={{ $json[\"_action\"] }}"
             },
             {
               "value2": "update",
               "output": 1,
-              "operation": "equal"
+              "operation": "equal",
+              "value1": "={{ $json[\"_action\"] }}"
             },
             {
               "value2": "delete",
               "output": 2,
-              "operation": "equal"
+              "operation": "equal",
+              "value1": "={{ $json[\"_action\"] }}"
             }
           ]
-        }
+        },
+        "dataType": "string",
+        "value1": "={{ $json[\"_action\"] }}"
       },
       "id": "a6a5f07b-d7e9-43ee-87e5-22e95f49aa0e",
       "name": "Switch Action",
