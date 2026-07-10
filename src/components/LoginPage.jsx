@@ -14,7 +14,7 @@ export default function LoginPage({ onLoginSuccess }) {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'user'
+    role: 'sale'
   });
 
   const getSettings = () => JSON.parse(localStorage.getItem('appSettings') || '{}');
@@ -198,7 +198,6 @@ export default function LoginPage({ onLoginSuccess }) {
                     value={formData.role}
                     onChange={handleChange}
                   >
-                    <option value="user">พนักงานทั่วไป (User)</option>
                     <option value="sale">พนักงานขาย (Sale)</option>
                     <option value="manager">ผู้จัดการ (Manager)</option>
                     <option value="stock_manager">ฝ่ายคลังสินค้า (Stock Manager)</option>
