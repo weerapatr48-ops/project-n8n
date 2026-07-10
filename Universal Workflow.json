@@ -1926,11 +1926,19 @@
         "rules": {
           "rules": [
             {
-              "value2": "update"
+              "value2": "insert",
+              "output": 0,
+              "operation": "equal"
+            },
+            {
+              "value2": "update",
+              "output": 1,
+              "operation": "equal"
             },
             {
               "value2": "delete",
-              "output": 1
+              "output": 2,
+              "operation": "equal"
             }
           ]
         }

@@ -2440,7 +2440,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "db-write",
-        "responseMode": "lastNode",
+        "responseMode": "onReceived",
         "options": {}
       },
       "id": "6c13c574-dc60-4b23-a8ac-b0dd326f7276",
@@ -2470,9 +2470,21 @@
       "parameters": {
         "rules": {
           "rules": [
-            {},
-            {},
-            {}
+            {
+              "value2": "insert",
+              "output": 0,
+              "operation": "equal"
+            },
+            {
+              "value2": "update",
+              "output": 1,
+              "operation": "equal"
+            },
+            {
+              "value2": "delete",
+              "output": 2,
+              "operation": "equal"
+            }
           ]
         }
       },
@@ -2495,7 +2507,7 @@
         },
         "sheetName": {
           "__rl": true,
-          "value": "={{ ._sheet }}",
+          "value": "={{ $('Extract Data').item.json[\"_sheet\"] }}",
           "mode": "name"
         },
         "columns": {
@@ -2528,12 +2540,10 @@
         },
         "sheetName": {
           "__rl": true,
-          "value": "={{ ._sheet }}",
+          "value": "={{ $('Extract Data').item.json[\"_sheet\"] }}",
           "mode": "name"
         },
-        "columns": {
-          "mappingMode": "autoMapInputData"
-        },
+        "columns": "={{ { mappingMode: 'autoMapInputData', matchingColumns: [ $('Extract Data').item.json['_idKey'] ] } }}",
         "options": {}
       },
       "id": "6d47bbf8-0499-4208-bff5-2071e79236dc",
@@ -2561,9 +2571,10 @@
         },
         "sheetName": {
           "__rl": true,
-          "value": "={{ ._sheet }}",
+          "value": "={{ $('Extract Data').item.json[\"_sheet\"] }}",
           "mode": "name"
-        }
+        },
+        "startIndex": "={{ $('Extract Data').item.json['_rawRowNumber'] }}"
       },
       "id": "1f39271b-d9de-4510-bfaf-462818a4fb20",
       "name": "Delete Row",
@@ -2593,6 +2604,32 @@
       ],
       "id": "9c3a6ce2-956c-4a34-91e8-18ae56b8932b",
       "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  delete item.json._action;\n  delete item.json._sheet;\n  delete item.json._idKey;\n  delete item.json._rawRowNumber;\n}\nreturn $input.all();"
+      },
+      "id": "clean-data-node",
+      "name": "Clean Insert Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        1300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  delete item.json._action;\n  delete item.json._sheet;\n  delete item.json._idKey;\n  delete item.json._rawRowNumber;\n}\nreturn $input.all();"
+      },
+      "id": "clean-update-data-node",
+      "name": "Clean Update Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        1500
+      ]
     }
   ],
   "pinData": {
@@ -3080,14 +3117,14 @@
       "main": [
         [
           {
-            "node": "Insert Row",
+            "node": "Clean Insert Data",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Update Row",
+            "node": "Clean Update Data",
             "type": "main",
             "index": 0
           }
@@ -3106,6 +3143,44 @@
         [
           {
             "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Data": {
+      "main": [
+        [
+          {
+            "node": "Insert Row",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Insert Data": {
+      "main": [
+        [
+          {
+            "node": "Insert Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Update Data": {
+      "main": [
+        [
+          {
+            "node": "Update Row",
             "type": "main",
             "index": 0
           }
