@@ -2408,7 +2408,6 @@
     },
     {
       "parameters": {
-        "operation": "getAll",
         "documentId": {
           "__rl": true,
           "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
@@ -2428,7 +2427,13 @@
       "position": [
         400,
         200
-      ]
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
@@ -2533,7 +2538,13 @@
       "position": [
         750,
         250
-      ]
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
@@ -2560,7 +2571,13 @@
       "position": [
         750,
         400
-      ]
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
@@ -2584,7 +2601,13 @@
       "position": [
         750,
         550
-      ]
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
     }
   ],
   "pinData": {
