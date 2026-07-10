@@ -59,10 +59,7 @@ export default function StockManager() {
     } catch (err) {
       console.log('Failed to fetch stock/product', err);
       // Mock data for display
-      setProducts([
-        { 'รหัส': 'P001', 'ชื่อ': 'iPhone 15 Pro', 'หน่วย': 'เครื่อง', 'ราคาขาย': 41900, 'สถานะ': 'Active' },
-        { 'รหัส': 'P002', 'ชื่อ': 'MacBook Air M2', 'หน่วย': 'เครื่อง', 'ราคาขาย': 39900, 'สถานะ': 'Active' }
-      ]);
+      setProducts([]);
     } finally {
       setLoading(false);
     }

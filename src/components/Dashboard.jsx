@@ -36,19 +36,12 @@ export default function Dashboard() {
       console.log('Using mock dashboard data', err);
       // Mock data for display purposes
       setData({
-        customers: 145,
-        products: 856,
-        quotationsThisMonth: 24,
-        totalRevenue: 1250000,
-        recentQuotations: [
-          { id: 1, quotation_no: 'QT-20260707-001', customer_name: 'บริษัท เอบีซี จำกัด', total: 45000, date: '2026-07-07', status: 'Approved' },
-          { id: 2, quotation_no: 'QT-20260706-002', customer_name: 'สมชาย ขายส่ง', total: 12500, date: '2026-07-06', status: 'Pending' },
-          { id: 3, quotation_no: 'QT-20260705-003', customer_name: 'XYZ Corporation', total: 850000, date: '2026-07-05', status: 'Sent' },
-        ],
-        lowStockProducts: [
-          { id: 'P01', name: 'กระดาษ A4 Double A', amount: 5, unit: 'รีม' },
-          { id: 'P02', name: 'หมึกพิมพ์ HP 85A', amount: 2, unit: 'กล่อง' },
-        ]
+        customers: 0,
+        products: 0,
+        quotationsThisMonth: 0,
+        totalRevenue: 0,
+        recentQuotations: [],
+        lowStockProducts: []
       });
     } finally {
       setLoading(false);
