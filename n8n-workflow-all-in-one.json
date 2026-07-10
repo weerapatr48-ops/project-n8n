@@ -1,0 +1,327 @@
+{
+  "name": "CRUD Database ALL FIELDS",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "database-action",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "66fb4f02-7fcb-4188-9db0-91cc6d5cace1",
+      "name": "Webhook (จัดการฐานข้อมูล)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [-448, 112]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.action }}",
+        "rules": {
+          "rules": [
+            { "value2": "update" },
+            { "value2": "delete", "output": 1 }
+          ]
+        }
+      },
+      "id": "02069223-e13a-4609-ad6b-f41f6afcb4b7",
+      "name": "เช็คคำสั่ง (Update/Delete)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [-256, 112]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "รหัสลูกค้า/ผู้ขาย": "={{ $json.body.data.id }}",
+            "ชื่อลูกค้า/ผู้ขาย": "={{ $json.body.data.name }}",
+            "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย": "={{ $json.body.data.taxId }}",
+            "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย": "={{ $json.body.data.type }}",
+            "ผู้ติดต่อ": "={{ $json.body.data.contact }}",
+            "โทรศัพท์": "={{ $json.body.data.phone }}",
+            "อีเมล": "={{ $json.body.data.email }}",
+            "ที่อยู่ 1": "={{ $json.body.data.address }}",
+            "อำเภอ": "={{ $json.body.data.district }}",
+            "จังหวัด": "={{ $json.body.data.province }}",
+            "เครดิต (วัน)": "={{ $json.body.data.credit }}",
+            "วงเงิน": "={{ $json.body.data.limit }}",
+            "หมายเหตุ": "={{ $json.body.data.remark }}"
+          },
+          "matchingColumns": ["รหัสลูกค้า/ผู้ขาย"]
+        },
+        "options": {}
+      },
+      "id": "bf7955b0-9234-4830-b417-535860be4ceb",
+      "name": "อัปเดตข้อมูล (แก้ไข)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "startIndex": "={{ $json.body.data.rowNumber }}",
+        "numberToDelete": 1
+      },
+      "id": "bef20d3b-1b06-4cb5-84e1-6c75db957b02",
+      "name": "ลบข้อมูล (Delete Row)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [0, 208]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "settings",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "e45f9e29-a1b4-4b5c-b173-9828d57d4a1b",
+      "name": "Webhook (POST Settings)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "path": "settings",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "c1f8e28a-1a84-4b9d-b841-8c4d2918a93e",
+      "name": "Webhook (GET Settings)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 100]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Settings",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "id": "f8a9e11c-2c93-4f8a-a43b-287c88b7d91e",
+      "name": "ดึงข้อมูลการตั้งค่า",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [400, 100]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Settings",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "1",
+            "Company Name": "={{ $json.body.companyName }}",
+            "Tax ID": "={{ $json.body.companyTaxId }}",
+            "Address": "={{ $json.body.companyAddress }}",
+            "Phone": "={{ $json.body.companyPhone }}",
+            "Logo URL": "={{ $json.body.companyLogo }}"
+          },
+          "matchingColumns": ["ID"]
+        },
+        "options": {}
+      },
+      "id": "a5d8e72f-1e9a-4c8d-b942-837d99c4f1a5",
+      "name": "อัปเดตการตั้งค่า",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "path": "project",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "id": "be7cb364-7746-46a8-8bb2-c2a60044c423",
+      "name": "Webhook (GET project)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [160, 500]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "id": "911063fd-bf56-4e65-a137-abb7435ffab9",
+      "name": "ดึงข้อมูลลูกค้า (Google Sheets)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [416, 500]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "project",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "4f791348-b363-450d-979e-919fec47e35f",
+      "name": "Webhook (POST project)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [160, 700]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_GEMINI_API_KEY",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"คุณคือ AI ผู้ช่วยสร้างใบเสนอราคา หน้าที่ของคุณคืออ่านข้อความความต้องการจากผู้ใช้ แล้วสกัดข้อมูลออกมาเป็นรูปแบบ JSON เท่านั้น (ห้ามมีข้อความอื่นปะปน) \\n\\nโครงสร้าง JSON ที่ต้องการ:\\n{\\n  \\\"customerInfo\\\": {\\n    \\\"name\\\": \\\"ชื่อบริษัทหรือชื่อลูกค้า (เดาข้อมูลที่ขาดหายไปให้สมจริง)\\\",\\n    \\\"taxId\\\": \\\"เลขผู้เสียภาษี (สุ่มเลข 13 หลักถ้าไม่ระบุ)\\\",\\n    \\\"address\\\": \\\"ที่อยู่ (สร้างที่อยู่สมมติถ้าไม่ระบุ)\\\",\\n    \\\"contact\\\": \\\"ชื่อผู้ติดต่อ\\\",\\n    \\\"date\\\": \\\"2026-07-06\\\"\\n  },\\n  \\\"items\\\": [\\n    {\\n      \\\"description\\\": \\\"ชื่อสินค้าและรายละเอียด\\\",\\n      \\\"quantity\\\": 1,\\n      \\\"price\\\": 1000\\n    }\\n  ]\\n}\\n\\nข้อความจากผู้ใช้:\\n{{ $json.body.prompt }}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "d802cfb2-6fb6-4e6c-a1c5-f3b19c9d3cb9",
+      "name": "Gemini API (HTTP Request)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [416, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  // ดึงข้อความตอบกลับจาก API\n  let aiResponse = $input.item.json.candidates[0].content.parts[0].text || \"\";\n  \n  // ตัด Markdown ```json และ ``` ออก\n  aiResponse = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim();\n\n  return {\n    json: JSON.parse(aiResponse)\n  };\n} catch(e) {\n  return { json: { error: \"แปลงข้อมูลไม่สำเร็จ\", raw: $input.item.json } };\n}"
+      },
+      "id": "5c1967c2-e3cb-4a0b-ad4a-55aca9681f77",
+      "name": "แปลงข้อความเป็น JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [672, 700]
+    }
+  ],
+  "connections": {
+    "Webhook (จัดการฐานข้อมูล)": {
+      "main": [
+        [
+          { "node": "เช็คคำสั่ง (Update/Delete)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "เช็คคำสั่ง (Update/Delete)": {
+      "main": [
+        [
+          { "node": "อัปเดตข้อมูล (แก้ไข)", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "ลบข้อมูล (Delete Row)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Webhook (GET Settings)": {
+      "main": [
+        [
+          {
+            "node": "ดึงข้อมูลการตั้งค่า",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (POST Settings)": {
+      "main": [
+        [
+          {
+            "node": "อัปเดตการตั้งค่า",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (GET project)": {
+      "main": [
+        [
+          {
+            "node": "ดึงข้อมูลลูกค้า (Google Sheets)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (POST project)": {
+      "main": [
+        [
+          {
+            "node": "Gemini API (HTTP Request)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini API (HTTP Request)": {
+      "main": [
+        [
+          {
+            "node": "แปลงข้อความเป็น JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
