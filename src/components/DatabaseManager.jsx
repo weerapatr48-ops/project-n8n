@@ -15,8 +15,8 @@ const getN8nUrl = () => {
 
 const SHEETS_CONFIG = [
   { id: 'customer', label: 'ลูกค้าและคู่ค้า (Customer)', readEndpoint: '/webhook/db-read?sheet=customer', roles: ['admin', 'manager', 'sale', 'user'] },
-  { id: 'product', label: 'ฐานข้อมูลสินค้าหลัก (Product)', readEndpoint: '/webhook/db-read?sheet=product', roles: ['admin', 'manager', 'stock_manager'] },
-  { id: 'stock', label: 'เช็คสต็อก (Stock)', readEndpoint: '/webhook/db-read?sheet=stock', roles: ['admin', 'manager', 'stock_manager'] },
+  { id: 'product', label: 'ฐานข้อมูลสินค้าหลัก (Product)', readEndpoint: '/webhook/db-read?sheet=product', roles: ['admin', 'manager', 'stock'] },
+  { id: 'stock', label: 'เช็คสต็อก (Stock)', readEndpoint: '/webhook/db-read?sheet=stock', roles: ['admin', 'manager', 'stock'] },
   { id: 'Users', label: 'จัดการผู้ใช้งาน (Users)', readEndpoint: '/webhook/db-read?sheet=Users', roles: ['admin'] },
   { id: 'empolyee', label: 'รายชื่อพนักงาน (Employees)', readEndpoint: '/webhook/db-read?sheet=empolyee', roles: ['admin'] },
   { id: 'Quotations', label: 'ใบเสนอราคา (Quotations)', readEndpoint: '/webhook/db-read?sheet=Quotations', roles: ['admin', 'manager', 'sale'] },
