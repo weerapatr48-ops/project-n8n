@@ -244,19 +244,8 @@ export default function StockManager() {
                   <Activity size={20}/> ประวัติล่าสุด
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ padding: '1rem', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', borderLeft: '4px solid var(--success)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                      <span style={{ fontWeight: 600 }}>iPhone 15 Pro</span>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>วันนี้ 10:30</span>
-                    </div>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>นำเข้าสต็อก +10 เครื่อง</p>
-                  </div>
-                  <div style={{ padding: '1rem', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', borderLeft: '4px solid var(--danger)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                      <span style={{ fontWeight: 600 }}>MacBook Air M2</span>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>เมื่อวาน 15:45</span>
-                    </div>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>ตัดสต็อก -2 เครื่อง</p>
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
+                    ไม่มีประวัติการทำรายการล่าสุด
                   </div>
                 </div>
               </div>
