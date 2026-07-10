@@ -1,0 +1,2850 @@
+{
+  "name": "Universal Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "settings",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "155d3c99-f9d1-49c4-a5f8-43695c61894a",
+      "name": "Webhook (POST Settings)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -3936,
+        112
+      ],
+      "webhookId": "a3e7b740-8529-4d05-a6a0-135f3e24abc0"
+    },
+    {
+      "parameters": {
+        "path": "settings",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "f674e379-bd76-47e2-aa5b-9efa9f8d4e1f",
+      "name": "Webhook (GET Settings)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -3936,
+        -80
+      ],
+      "webhookId": "01692a64-937b-40b7-95dc-e2f25a6a2514"
+    },
+    {
+      "parameters": {
+        "path": "stock",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "b7f3249d-96a1-431a-9ef4-2ba7d05b1a45",
+      "name": "GET /stock",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -2864,
+        -304
+      ],
+      "webhookId": "f1c0eb8c-c2db-4171-97e3-fa0badf9da92"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1456998607,
+          "mode": "list",
+          "cachedResultName": "product",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit#gid=1456998607"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ชื่อ": "="
+          },
+          "matchingColumns": [
+            "ชื่อ"
+          ],
+          "schema": [
+            {
+              "id": "รหัส",
+              "displayName": "รหัส",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ชื่อ",
+              "displayName": "ชื่อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ชื่อจำเพราะ",
+              "displayName": "ชื่อจำเพราะ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "หน่วย",
+              "displayName": "หน่วย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ประเภทสินค้า",
+              "displayName": "ประเภทสินค้า",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ประเภทสินค้า2",
+              "displayName": "ประเภทสินค้า2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ราคาซื้อ",
+              "displayName": "ราคาซื้อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ราคาขาย",
+              "displayName": "ราคาขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "อัตราภาษีซื้อ",
+              "displayName": "อัตราภาษีซื้อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "อัตราภาษีขาย",
+              "displayName": "อัตราภาษีขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "บาร์โค๊ด",
+              "displayName": "บาร์โค๊ด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ครีเวิด",
+              "displayName": "ครีเวิด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "จำกัดจำนวน",
+              "displayName": "จำกัดจำนวน",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "สถานะ",
+              "displayName": "สถานะ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "แบรนด์",
+              "displayName": "แบรนด์",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "กลุ่มสินค้า",
+              "displayName": "กลุ่มสินค้า",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ผู้สร้าง",
+              "displayName": "ผู้สร้าง",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ผู้แก้ไขล่าสุด",
+              "displayName": "ผู้แก้ไขล่าสุด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วันที่สร้าง",
+              "displayName": "วันที่สร้าง",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วันที่แก้ไขล่าสุด",
+              "displayName": "วันที่แก้ไขล่าสุด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "หมายเหตุ1",
+              "displayName": "หมายเหตุ1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "หมายเหตุ2",
+              "displayName": "หมายเหตุ2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "2a1f3f18-eb4c-488a-af7f-91fa6e9f9dd3",
+      "name": "Read Products",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -2656,
+        -304
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "dashboard",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "70ddeb66-40d3-46ea-ba17-eeacdf287d08",
+      "name": "GET /dashboard",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -2864,
+        -96
+      ],
+      "webhookId": "3c373a39-ddd9-49ee-9103-04aaf7323775"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "customer",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "9e9fe6f8-6353-4c3e-a3aa-a5eb768ac20c",
+      "name": "Read Customers",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -2656,
+        -96
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        }
+      },
+      "id": "8b06ee80-620b-4f64-9b31-b95c85b43e25",
+      "name": "Read Products Dash",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -2464,
+        -96
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst customers = $items(\"Read Customers\").length;\nconst products = $items(\"Read Products Dash\").length;\nreturn {\n  json: {\n    customers: customers,\n    products: products,\n    quotationsThisMonth: 0,\n    totalRevenue: 0,\n    recentQuotations: [],\n    lowStockProducts: []\n  }\n};"
+      },
+      "id": "703790e5-7280-47cc-bc94-6814c3a34c2d",
+      "name": "Calculate Dashboard KPI",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2256,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "auth/login",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "50de4bb8-e2b2-4539-9f97-2e87e57aa8e1",
+      "name": "POST /auth/login",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -2864,
+        96
+      ],
+      "webhookId": "448bf917-9b79-4a96-b582-883d34943957"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 830073076,
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit#gid=830073076"
+        },
+        "options": {}
+      },
+      "id": "c227abb0-1c7c-4066-982f-551b9ebc9641",
+      "name": "Read Users",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -2656,
+        96
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst body = $items(\"POST /auth/login\")[0].json.body;\nconst users = $input.all().map(i => i.json);\nconst user = users.find(u => u.email === body.email && u.password === body.password);\nif(user) {\n  return { json: { success: true, user: { name: user.name, email: user.email, role: user.role } } };\n} else {\n  return { json: { success: false, message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' } };\n}\n"
+      },
+      "id": "bd4987e7-0911-4d1d-96f3-b874dfc6e130",
+      "name": "Check Login Logic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2464,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "auth/register",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "3ced4c51-91f3-4ea8-a3c4-fab1eae5287c",
+      "name": "POST /auth/register",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -2864,
+        304
+      ],
+      "webhookId": "cb417ca7-bfa2-41c8-88b8-0fd9ddda7038"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 830073076,
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit#gid=830073076"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "password",
+              "displayName": "password",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3970132b-8f30-4d88-9d09-834f0de2c158",
+      "name": "Add User",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -2656,
+        304
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: { success: true } };"
+      },
+      "id": "8a8e2cd2-4f1c-48ab-964b-0aa4b5e38ab7",
+      "name": "Register Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2464,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "quotations",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "9263cc34-73cb-465a-ae6b-0d6b73e707cc",
+      "name": "POST /quotations",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -2864,
+        496
+      ],
+      "webhookId": "225f4c7a-0e68-4f54-abf4-645f5d9cf9af"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Quotations",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{$execution.id}}",
+            "quotation_no": "={{$json.body.quotation_no}}",
+            "date": "={{$json.body.date}}",
+            "customer_name": "={{$json.body.customer.name}}",
+            "total": "={{$json.body.total}}",
+            "status": "Pending"
+          }
+        },
+        "options": {}
+      },
+      "id": "6c72249a-6631-4401-949f-af55c9d5f8f3",
+      "name": "Add Quotation",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -2656,
+        496
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: { success: true } };"
+      },
+      "id": "318b0ac5-40b9-43b0-828f-d8806c1ec629",
+      "name": "Quote Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2464,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "path": "init-db",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "fee0a9aa-c535-45b6-bdad-dfdc717c5be7",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -2864,
+        -512
+      ],
+      "webhookId": "26c5390c-f5cb-47a6-85dc-cb9a98597691"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "title": "Users",
+        "options": {}
+      },
+      "id": "bab55306-9aa6-4fba-811d-870376959a0d",
+      "name": "Create Users",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -2656,
+        -512
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "title": "Quotations",
+        "options": {}
+      },
+      "id": "444ccff5-3280-419e-8c12-1dc7d7aa5c55",
+      "name": "Create Quotations",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -2464,
+        -512
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "title": "Stock_Log",
+        "options": {}
+      },
+      "id": "9184f68b-57ab-4c55-8428-de97884521b3",
+      "name": "Create Stock Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -2256,
+        -512
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-assistant",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "fbd80fbb-4f8c-414c-b5bb-c9744a79dadb",
+      "name": "Webhook (AI Assistant)1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -2000,
+        -288
+      ],
+      "webhookId": "ee7ef2c8-0a79-41ea-9caa-2a84b7cbd2c2",
+      "notes": "รับ POST จากหน้าเว็บ React { prompt: '...' }"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=คุณคือ AI Assistant ประจำระบบจัดการธุรกิจชื่อ SmartQuote\n\nคุณทำได้ทุกอย่างต่อไปนี้:\n1. ออกใบเสนอราคา (สร้าง/แก้ไขรายการสินค้า)\n2. จัดการฐานข้อมูลลูกค้า (เพิ่ม/ลบ/แก้ไข)\n3. จัดการฐานข้อมูลพนักงาน (เพิ่ม/ลบ/แก้ไข)\n4. จัดการสต็อกสินค้า (เพิ่ม/ตัด)\n5. ตอบคำถามทั่วไป\n\nกฎสำคัญ: ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่นนอก JSON block\n\nSchema ที่ต้องใช้:\n```json\n{\n  \"action\": \"quotation | database | stock | reply\",\n  \"message\": \"ข้อความสั้นๆ บอกผู้ใช้ว่าคุณทำอะไรไป\",\n  \"data\": {\n    // --- ถ้า action = quotation ---\n    \"customerInfo\": {\n      \"name\": \"ชื่อลูกค้า\",\n      \"taxId\": \"เลขภาษี (ถ้ามี)\",\n      \"address\": \"ที่อยู่ (ถ้ามี)\",\n      \"phone\": \"เบอร์โทร (ถ้ามี)\"\n    },\n    \"items\": [\n      { \"description\": \"ชื่อสินค้า/บริการ\", \"quantity\": 1, \"price\": 1000 }\n    ],\n\n    // --- ถ้า action = database ---\n    \"table\": \"customers | employees\",\n    \"operation\": \"add | update | delete\",\n    \"payload\": {\n      \"id\": \"รหัส (ถ้าแก้ไข/ลบ)\",\n      \"name\": \"ชื่อ\",\n      \"phone\": \"เบอร์โทร\",\n      \"email\": \"อีเมล\",\n      \"address\": \"ที่อยู่\",\n      \"taxId\": \"เลขภาษี\",\n      \"type\": \"Customer | Vendor\",\n      \"remark\": \"หมายเหตุ\"\n    },\n\n    // --- ถ้า action = stock ---\n    \"operation\": \"add | deduct\",\n    \"productName\": \"ชื่อสินค้า\",\n    \"amount\": 1,\n    \"unit\": \"หน่วย (ชิ้น/กล่อง/ชุด)\",\n    \"remark\": \"หมายเหตุ\"\n  }\n}\n```\n\nตัวอย่างการตีความ:\n- \"เพิ่มลูกค้าชื่อ สมชาย เบอร์ 081-xxx\" → action=database, table=customers, operation=add\n- \"ลบลูกค้าชื่อ บริษัท A\" → action=database, table=customers, operation=delete\n- \"แก้ไขชื่อพนักงาน สมหญิง เป็น สมศรี\" → action=database, table=employees, operation=update\n- \"ตัดสต็อก iPhone 15 จำนวน 5 เครื่อง\" → action=stock, operation=deduct\n- \"เพิ่มสต็อกสินค้า\" → action=stock, operation=add\n- \"สร้างใบเสนอราคา\" → action=quotation\n\nคำสั่งจากผู้ใช้: {{ $json.body.prompt }}"
+      },
+      "id": "2eadef7b-73f1-4886-bf66-2b8f36846349",
+      "name": "Basic LLM Chain (Gemini)1",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        -1792,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "d5c7524e-cb1a-408a-9502-218c20e9543f",
+      "name": "Google Gemini Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1792,
+        -112
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "5QJxUPfc6K9diAWL",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "notes": "ใส่ Credential: สร้าง Google Gemini API ใหม่ แล้ววาง API Key (AQ... หรือ AIza...)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse JSON output จาก Gemini\ntry {\n  let raw = $input.item.json.text || $input.item.json.output || '';\n  // ลบ markdown code block ออก\n  raw = raw.replace(/```json/gi, '').replace(/```/g, '').trim();\n  const parsed = JSON.parse(raw);\n  return { json: parsed };\n} catch (e) {\n  return {\n    json: {\n      action: 'reply',\n      message: 'ขออภัยครับ ผมไม่สามารถประมวลผลคำสั่งได้ในตอนนี้ กรุณาลองใหม่อีกครั้ง',\n      data: null\n    }\n  };\n}"
+      },
+      "id": "90bcadb3-8b91-4e05-85e7-a725518f3620",
+      "name": "Parse AI Response1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1472,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.action }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "quotation"
+            },
+            {
+              "value2": "database",
+              "output": 1
+            },
+            {
+              "value2": "stock",
+              "output": 2
+            },
+            {
+              "value2": "reply",
+              "output": 3
+            }
+          ]
+        },
+        "fallbackOutput": 3
+      },
+      "id": "78edea80-1140-4fbc-b2f7-b5c1ac3fb9c3",
+      "name": "Router (Action Type)1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// สร้าง Response สำหรับ Quotation\n// ส่งข้อมูลกลับตรงๆ ไปหน้าเว็บได้เลย\nconst payload = $input.item.json;\nreturn {\n  json: {\n    action: 'quotation',\n    message: payload.message || 'ร่างใบเสนอราคาให้คุณเรียบร้อยแล้วครับ ✅',\n    data: payload.data || {}\n  }\n};"
+      },
+      "id": "fa692639-5410-4bca-95fd-0d559c72fcde",
+      "name": "Respond: Quotation1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        -576
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.data.operation }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "add"
+            },
+            {
+              "value2": "update",
+              "output": 1
+            },
+            {
+              "value2": "delete",
+              "output": 2
+            }
+          ]
+        },
+        "fallbackOutput": 0
+      },
+      "id": "f91f3104-e8f3-46b7-bdad-927b8bad0cbb",
+      "name": "Router (DB Operation)1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -1040,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "customer",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "รหัสลูกค้า/ผู้ขาย",
+              "displayName": "รหัสลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ชื่อลูกค้า/ผู้ขาย",
+              "displayName": "ชื่อลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "รหัส PIC",
+              "displayName": "รหัส PIC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย",
+              "displayName": "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย",
+              "displayName": "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ผู้ติดต่อ",
+              "displayName": "ผู้ติดต่อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ที่อยู่ 1",
+              "displayName": "ที่อยู่ 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "อีเมล",
+              "displayName": "อีเมล",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "โทรศัพท์",
+              "displayName": "โทรศัพท์",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "รายชื่อผู้ติดต่อทั้งหมด",
+              "displayName": "รายชื่อผู้ติดต่อทั้งหมด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "หมายเหตุ",
+              "displayName": "หมายเหตุ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วันที่สร้าง",
+              "displayName": "วันที่สร้าง",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ผู้สร้าง",
+              "displayName": "ผู้สร้าง",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วันที่แก้ไขล่าสุด",
+              "displayName": "วันที่แก้ไขล่าสุด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "อำเภอ",
+              "displayName": "อำเภอ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "จังหวัด",
+              "displayName": "จังหวัด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ลูกค้าในประเทศ/ต่างประเทศ",
+              "displayName": "ลูกค้าในประเทศ/ต่างประเทศ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "แหล่งที่มาชื่อ",
+              "displayName": "แหล่งที่มาชื่อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "เขตการขาย",
+              "displayName": "เขตการขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "เครดิต (วัน)",
+              "displayName": "เครดิต (วัน)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วงเงิน",
+              "displayName": "วงเงิน",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ประเภทอุตสาหกรรมชื่อ",
+              "displayName": "ประเภทอุตสาหกรรมชื่อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ชื่อบริษัท (เพิ่มเติม)",
+              "displayName": "ชื่อบริษัท (เพิ่มเติม)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sales RemarB",
+              "displayName": "Sales RemarB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Catagory",
+              "displayName": "Catagory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Area",
+              "displayName": "Area",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "8bc7a0f2-3aaa-489f-ac34-229bc65024d7",
+      "name": "Sheets: Add Row1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -800,
+        -480
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "เพิ่มแถวใหม่ในชีตลูกค้าหรือพนักงาน (ตาม table ที่ AI ระบุ)"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "customer",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "ชื่อลูกค้า/ผู้ขาย"
+          ],
+          "schema": [
+            {
+              "id": "รหัสลูกค้า/ผู้ขาย",
+              "displayName": "รหัสลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ชื่อลูกค้า/ผู้ขาย",
+              "displayName": "ชื่อลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "รหัส PIC",
+              "displayName": "รหัส PIC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย",
+              "displayName": "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย",
+              "displayName": "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ผู้ติดต่อ",
+              "displayName": "ผู้ติดต่อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ที่อยู่ 1",
+              "displayName": "ที่อยู่ 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "อีเมล",
+              "displayName": "อีเมล",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "โทรศัพท์",
+              "displayName": "โทรศัพท์",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "รายชื่อผู้ติดต่อทั้งหมด",
+              "displayName": "รายชื่อผู้ติดต่อทั้งหมด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "หมายเหตุ",
+              "displayName": "หมายเหตุ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วันที่สร้าง",
+              "displayName": "วันที่สร้าง",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ผู้สร้าง",
+              "displayName": "ผู้สร้าง",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วันที่แก้ไขล่าสุด",
+              "displayName": "วันที่แก้ไขล่าสุด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "อำเภอ",
+              "displayName": "อำเภอ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "จังหวัด",
+              "displayName": "จังหวัด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ลูกค้าในประเทศ/ต่างประเทศ",
+              "displayName": "ลูกค้าในประเทศ/ต่างประเทศ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "แหล่งที่มาชื่อ",
+              "displayName": "แหล่งที่มาชื่อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "เขตการขาย",
+              "displayName": "เขตการขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "เครดิต (วัน)",
+              "displayName": "เครดิต (วัน)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วงเงิน",
+              "displayName": "วงเงิน",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ประเภทอุตสาหกรรมชื่อ",
+              "displayName": "ประเภทอุตสาหกรรมชื่อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ชื่อบริษัท (เพิ่มเติม)",
+              "displayName": "ชื่อบริษัท (เพิ่มเติม)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sales RemarB",
+              "displayName": "Sales RemarB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Catagory",
+              "displayName": "Catagory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Area",
+              "displayName": "Area",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "02a1ab48-3d9d-4fc0-b216-633dcf7d5182",
+      "name": "Sheets: Update Row1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -800,
+        -320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "อัปเดตแถวที่ตรงกับรหัส ID"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "customer",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "b08ddf4a-7ca7-456b-b5b9-361056cecc8a",
+      "name": "Sheets: Delete Row1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -800,
+        -160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "ลบแถวที่ตรงกับชื่อ (ควรเพิ่มการยืนยันก่อนลบในงานจริง)"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.data.operation }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "add"
+            },
+            {
+              "value2": "deduct",
+              "output": 1
+            }
+          ]
+        },
+        "fallbackOutput": 0
+      },
+      "id": "7e86aafa-11d4-48f5-b134-a1f5d7a3cca5",
+      "name": "Router (Stock Operation)1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -1040,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1456998607,
+          "mode": "list",
+          "cachedResultName": "product",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit#gid=1456998607"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "รหัส"
+          ],
+          "schema": [
+            {
+              "id": "รหัส",
+              "displayName": "รหัส",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ชื่อ",
+              "displayName": "ชื่อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ชื่อจำเพราะ",
+              "displayName": "ชื่อจำเพราะ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "หน่วย",
+              "displayName": "หน่วย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ประเภทสินค้า",
+              "displayName": "ประเภทสินค้า",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ประเภทสินค้า2",
+              "displayName": "ประเภทสินค้า2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ราคาซื้อ",
+              "displayName": "ราคาซื้อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ราคาขาย",
+              "displayName": "ราคาขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "อัตราภาษีซื้อ",
+              "displayName": "อัตราภาษีซื้อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "อัตราภาษีขาย",
+              "displayName": "อัตราภาษีขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "บาร์โค๊ด",
+              "displayName": "บาร์โค๊ด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ครีเวิด",
+              "displayName": "ครีเวิด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "จำกัดจำนวน",
+              "displayName": "จำกัดจำนวน",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "สถานะ",
+              "displayName": "สถานะ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "แบรนด์",
+              "displayName": "แบรนด์",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "กลุ่มสินค้า",
+              "displayName": "กลุ่มสินค้า",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ผู้สร้าง",
+              "displayName": "ผู้สร้าง",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ผู้แก้ไขล่าสุด",
+              "displayName": "ผู้แก้ไขล่าสุด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วันที่สร้าง",
+              "displayName": "วันที่สร้าง",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วันที่แก้ไขล่าสุด",
+              "displayName": "วันที่แก้ไขล่าสุด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "หมายเหตุ1",
+              "displayName": "หมายเหตุ1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "หมายเหตุ2",
+              "displayName": "หมายเหตุ2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "83279533-54d3-4b7c-bbab-16845180d18b",
+      "name": "Sheets: Add Stock1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -800,
+        16
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "เพิ่มสต็อก - ปรับชื่อคอลัมน์ให้ตรงกับชีตสินค้าของคุณ"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ตัดสต็อก — อ่านค่าเดิม แล้วลบออก\n// หมายเหตุ: ในงานจริงต้องอ่านค่าปัจจุบันก่อน แล้วค่อยคำนวณ\n// นี่เป็น Logic ตัวอย่าง สามารถปรับให้ Read ก่อน Update ได้\nconst productName = $json.data.productName;\nconst amount = $json.data.amount;\nreturn {\n  json: {\n    ...$json,\n    deductInfo: {\n      productName,\n      amount,\n      note: `ตัดสต็อก ${amount} ${$json.data.unit || 'ชิ้น'} เมื่อ ${new Date().toLocaleString('th-TH')}`\n    }\n  }\n};"
+      },
+      "id": "730ed329-e2f8-444b-a3f7-2633b5fdbec3",
+      "name": "Prepare Deduct1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// รวม response จากทุก branch กลับมาเป็น format เดียวกัน\n// และส่งกลับไปหน้าเว็บ React\nconst input = $input.item.json;\n\n// ถ้ามาจาก Google Sheets node จะมี updatedRows หรือ appendedRow\nconst originalAction = input.action || 'database';\nconst originalMsg = input.message || 'ดำเนินการเรียบร้อยแล้วครับ ✅';\n\nreturn {\n  json: {\n    action: originalAction,\n    message: originalMsg,\n    data: input.data || null\n  }\n};"
+      },
+      "id": "4cd8ad9e-f7ac-4198-9048-cdb1fea314c2",
+      "name": "Respond: Database/Stock1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ตอบกลับข้อความทั่วไป\nreturn {\n  json: {\n    action: 'reply',\n    message: $input.item.json.message || 'มีอะไรให้ผมช่วยไหมครับ?',\n    data: null\n  }\n};"
+      },
+      "id": "f5282fde-28a3-4098-a144-e83c8fd4ad2f",
+      "name": "Respond: Reply1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "674c3707-f1a8-4935-9986-456cd89e22cd",
+      "name": "Send Response to React1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "path": "project",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "id": "d8defb29-d4f8-462d-9524-a9cf342ecfc3",
+      "name": "Webhook (GET database)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -3936,
+        320
+      ],
+      "webhookId": "84d9b089-22d0-4d17-b1d9-e8a48e34ae7d"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "id": "17005ee8-ba3a-4523-80f2-797d886a88c7",
+      "name": "Database",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -3744,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "startIndex": "={{ $json.body.data.rowNumber }}"
+      },
+      "id": "95a265de-6f8d-44f0-9623-5492c964de95",
+      "name": "ลบข้อมูล (Delete Row)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -3488,
+        -336
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "database-action",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "bcf742e0-b381-4bd9-a074-5c51edee5554",
+      "name": "Webhook (แก้ไขข้อมูล Customer)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -3936,
+        -320
+      ],
+      "webhookId": "a148f252-df0c-4a9f-ab7c-067eb6d95b6f"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.action }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "update"
+            },
+            {
+              "value2": "delete",
+              "output": 1
+            }
+          ]
+        }
+      },
+      "id": "cf149056-0ac9-45a6-9efe-63c9cf4ec1f4",
+      "name": "(Update/Delete)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -3744,
+        -352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "รหัสลูกค้า/ผู้ขาย": "={{ $json.body.data.id }}",
+            "ชื่อลูกค้า/ผู้ขาย": "={{ $json.body.data.name }}",
+            "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย": "={{ $json.body.data.taxId }}",
+            "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย": "={{ $json.body.data.type }}",
+            "ผู้ติดต่อ": "={{ $json.body.data.contact }}",
+            "โทรศัพท์": "={{ $json.body.data.phone }}",
+            "อีเมล": "={{ $json.body.data.email }}",
+            "ที่อยู่ 1": "={{ $json.body.data.address }}",
+            "อำเภอ": "={{ $json.body.data.district }}",
+            "จังหวัด": "={{ $json.body.data.province }}",
+            "เครดิต (วัน)": "={{ $json.body.data.credit }}",
+            "วงเงิน": "={{ $json.body.data.limit }}",
+            "หมายเหตุ": "={{ $json.body.data.remark }}"
+          },
+          "matchingColumns": [
+            "รหัสลูกค้า/ผู้ขาย"
+          ],
+          "schema": [
+            {
+              "id": "รหัสลูกค้า/ผู้ขาย",
+              "displayName": "รหัสลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ชื่อลูกค้า/ผู้ขาย",
+              "displayName": "ชื่อลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "รหัส PIC",
+              "displayName": "รหัส PIC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย",
+              "displayName": "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย",
+              "displayName": "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ผู้ติดต่อ",
+              "displayName": "ผู้ติดต่อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ที่อยู่ 1",
+              "displayName": "ที่อยู่ 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "อีเมล",
+              "displayName": "อีเมล",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "โทรศัพท์",
+              "displayName": "โทรศัพท์",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "รายชื่อผู้ติดต่อทั้งหมด",
+              "displayName": "รายชื่อผู้ติดต่อทั้งหมด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "หมายเหตุ",
+              "displayName": "หมายเหตุ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วันที่สร้าง",
+              "displayName": "วันที่สร้าง",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ผู้สร้าง",
+              "displayName": "ผู้สร้าง",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "วันที่แก้ไขล่าสุด",
+              "displayName": "วันที่แก้ไขล่าสุด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "อำเภอ",
+              "displayName": "อำเภอ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "จังหวัด",
+              "displayName": "จังหวัด",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ลูกค้าในประเทศ/ต่างประเทศ",
+              "displayName": "ลูกค้าในประเทศ/ต่างประเทศ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "แหล่งที่มาชื่อ",
+              "displayName": "แหล่งที่มาชื่อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "เขตการขาย",
+              "displayName": "เขตการขาย",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "เครดิต (วัน)",
+              "displayName": "เครดิต (วัน)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "วงเงิน",
+              "displayName": "วงเงิน",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ประเภทอุตสาหกรรมชื่อ",
+              "displayName": "ประเภทอุตสาหกรรมชื่อ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ชื่อบริษัท (เพิ่มเติม)",
+              "displayName": "ชื่อบริษัท (เพิ่มเติม)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sales RemarB",
+              "displayName": "Sales RemarB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Catagory",
+              "displayName": "Catagory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Area",
+              "displayName": "Area",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b54e8f59-f47c-404e-b5fb-091995ac8509",
+      "name": "อัปเดตข้อมูล (แก้ไข)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -3488,
+        -496
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit?gid=1837646820#gid=1837646820",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 940827542,
+          "mode": "list",
+          "cachedResultName": "Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit#gid=940827542"
+        },
+        "options": {}
+      },
+      "id": "092c19ca-06a3-445b-a5e5-e1d4ca868505",
+      "name": "ดึงข้อมูลการตั้งค่า",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -3744,
+        -80
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit?gid=1837646820#gid=1837646820",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 940827542,
+          "mode": "list",
+          "cachedResultName": "Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk/edit#gid=940827542"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "1",
+            "Company Name": "={{ $json.body.companyName }}",
+            "Tax ID": "={{ $json.body.companyTaxId }}",
+            "Address": "={{ $json.body.companyAddress }}",
+            "Phone": "={{ $json.body.companyPhone }}",
+            "Logo URL": "={{ $json.body.companyLogo }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tax ID",
+              "displayName": "Tax ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Logo URL",
+              "displayName": "Logo URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b7488cca-fb2c-4c4b-85f3-bf1248d06640",
+      "name": "อัปเดตการตั้งค่า",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -3744,
+        112
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "POST /auth/login": [
+      {
+        "json": {
+          "headers": {
+            "host": "localhost:5678",
+            "connection": "keep-alive",
+            "content-length": "49",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Not;A=Brand\";v=\"8\", \"Chromium\";v=\"150\", \"Brave\";v=\"150\"",
+            "content-type": "application/json",
+            "sec-ch-ua-mobile": "?0",
+            "accept": "*/*",
+            "sec-gpc": "1",
+            "accept-language": "en-US,en;q=0.5",
+            "origin": "http://localhost:5173",
+            "sec-fetch-site": "same-site",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "referer": "http://localhost:5173/",
+            "accept-encoding": "gzip, deflate, br, zstd"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "email": "admin@admin.com",
+            "password": "admin123"
+          },
+          "webhookUrl": "http://localhost:5678/webhook/auth/login",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook (GET Settings)": {
+      "main": [
+        [
+          {
+            "node": "ดึงข้อมูลการตั้งค่า",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (POST Settings)": {
+      "main": [
+        [
+          {
+            "node": "อัปเดตการตั้งค่า",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET /stock": {
+      "main": [
+        [
+          {
+            "node": "Read Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET /dashboard": {
+      "main": [
+        [
+          {
+            "node": "Read Customers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Customers": {
+      "main": [
+        [
+          {
+            "node": "Read Products Dash",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Products Dash": {
+      "main": [
+        [
+          {
+            "node": "Calculate Dashboard KPI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /auth/login": {
+      "main": [
+        [
+          {
+            "node": "Read Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Users": {
+      "main": [
+        [
+          {
+            "node": "Check Login Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /auth/register": {
+      "main": [
+        [
+          {
+            "node": "Add User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add User": {
+      "main": [
+        [
+          {
+            "node": "Register Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /quotations": {
+      "main": [
+        [
+          {
+            "node": "Add Quotation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Quotation": {
+      "main": [
+        [
+          {
+            "node": "Quote Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Create Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Users": {
+      "main": [
+        [
+          {
+            "node": "Create Quotations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Quotations": {
+      "main": [
+        [
+          {
+            "node": "Create Stock Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (AI Assistant)1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain (Gemini)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain (Gemini)1": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain (Gemini)1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response1": {
+      "main": [
+        [
+          {
+            "node": "Router (Action Type)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router (Action Type)1": {
+      "main": [
+        [
+          {
+            "node": "Respond: Quotation1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Router (DB Operation)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Router (Stock Operation)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: Reply1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond: Quotation1": {
+      "main": [
+        [
+          {
+            "node": "Send Response to React1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router (DB Operation)1": {
+      "main": [
+        [
+          {
+            "node": "Sheets: Add Row1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sheets: Update Row1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sheets: Delete Row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets: Add Row1": {
+      "main": [
+        [
+          {
+            "node": "Respond: Database/Stock1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets: Update Row1": {
+      "main": [
+        [
+          {
+            "node": "Respond: Database/Stock1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets: Delete Row1": {
+      "main": [
+        [
+          {
+            "node": "Respond: Database/Stock1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router (Stock Operation)1": {
+      "main": [
+        [
+          {
+            "node": "Sheets: Add Stock1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Deduct1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets: Add Stock1": {
+      "main": [
+        [
+          {
+            "node": "Respond: Database/Stock1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Deduct1": {
+      "main": [
+        [
+          {
+            "node": "Respond: Database/Stock1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond: Database/Stock1": {
+      "main": [
+        [
+          {
+            "node": "Send Response to React1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond: Reply1": {
+      "main": [
+        [
+          {
+            "node": "Send Response to React1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (GET database)": {
+      "main": [
+        [
+          {
+            "node": "Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (แก้ไขข้อมูล Customer)": {
+      "main": [
+        [
+          {
+            "node": "(Update/Delete)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "(Update/Delete)": {
+      "main": [
+        [
+          {
+            "node": "อัปเดตข้อมูล (แก้ไข)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ลบข้อมูล (Delete Row)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "66f0b4f7-936b-431a-86d2-07c64b901093",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9b9d3148ecc4dc5db52cdb82946e6bceeafb35f3f7da0f61a7e079618eddb113"
+  },
+  "id": "OKcPplQvuwPnVQzy",
+  "tags": []
+}
