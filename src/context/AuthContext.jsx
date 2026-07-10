@@ -37,11 +37,11 @@ export function AuthProvider({ children }) {
   const canAccess = (feature) => {
     const role = auth?.user?.role;
     const rules = {
-      dashboard:  ['admin', 'manager', 'user'],
-      quote:      ['admin', 'manager', 'user'],
-      ai:         ['admin', 'manager', 'user'],
-      database:   ['admin', 'manager'],
-      stock:      ['admin', 'manager'],
+      dashboard:  ['admin', 'manager', 'user', 'sale', 'stock_manager'],
+      quote:      ['admin', 'manager', 'user', 'sale'],
+      ai:         ['admin', 'manager', 'user', 'sale'],
+      database:   ['admin', 'manager', 'user', 'sale', 'stock_manager'],
+      stock:      ['admin', 'manager', 'stock_manager'],
       settings:   ['admin'],
     };
     return rules[feature]?.includes(role) ?? false;

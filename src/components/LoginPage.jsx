@@ -201,6 +201,7 @@ export default function LoginPage({ onLoginSuccess }) {
                     <option value="user">พนักงานทั่วไป (User)</option>
                     <option value="sale">พนักงานขาย (Sale)</option>
                     <option value="manager">ผู้จัดการ (Manager)</option>
+                    <option value="stock_manager">ฝ่ายคลังสินค้า (Stock Manager)</option>
                     <option value="admin">ผู้ดูแลระบบ (Admin)</option>
                   </select>
                 </div>

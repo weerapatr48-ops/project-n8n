@@ -35,15 +35,7 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
           </button>
         )}
 
-        {canAccess('stock') && (
-          <button 
-            className={`nav-item ${currentTab === 'stock' ? 'active' : ''}`}
-            onClick={() => setCurrentTab('stock')}
-          >
-            <Package size={20} />
-            <span>จัดการสต็อก</span>
-          </button>
-        )}
+
         
         {canAccess('database') && (
           <button 
