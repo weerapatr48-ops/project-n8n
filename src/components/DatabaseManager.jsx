@@ -72,9 +72,15 @@ export default function DatabaseManager() {
       });
       
       if (response.ok) {
-        const result = await response.json();
+        const text = await response.text();
+        let result;
+        try {
+          result = text && text.trim() ? JSON.parse(text) : [];
+        } catch (e) {
+          console.warn('Response is not valid JSON:', text);
+          result = [];
+        }
         console.log('=== n8n RAW RESPONSE ===');
-        console.log('Type:', typeof result);
         console.log('IsArray:', Array.isArray(result));
         console.log('Keys:', typeof result === 'object' ? Object.keys(result).slice(0, 10) : 'N/A');
         console.log('Full result:', JSON.stringify(result).substring(0, 1000));
@@ -108,8 +114,9 @@ export default function DatabaseManager() {
         }
 
         if (rawData.length > 0) {
-          // Extract dynamic columns from first row (excluding row_number)
-          let cols = Object.keys(rawData[0]).filter(k => k !== 'row_number' && k !== 'rowNumber');
+          // Extract dynamic columns from first row, excluding internal/junk columns
+          const excludeCols = ['row_number', 'rowNumber', '_action', '_sheet', '_idKey'];
+          let cols = Object.keys(rawData[0]).filter(k => !excludeCols.includes(k) && !k.startsWith('_'));
           
           // Move 'id' or 'รหัส' to front if exists
           const idIndex = cols.findIndex(c => c.toLowerCase() === 'id' || c === 'รหัส');
@@ -180,26 +187,43 @@ export default function DatabaseManager() {
     setIsSaving(true);
     try {
       const payload = { ...editForm };
+      // Remove internal fields that should not be sent to n8n/Google Sheets
       delete payload.isNew;
+      delete payload._rawRowNumber;
       
-      const response = await fetch(`${getN8nUrl()}/webhook/db-write`, {
+      const isInsert = editForm.isNew;
+      const n8nUrl = getN8nUrl();
+
+      console.log('=== DB WRITE REQUEST ===');
+      console.log('Action:', isInsert ? 'insert' : 'update');
+      console.log('Sheet:', activeDb);
+      console.log('Payload:', JSON.stringify(payload));
+
+      const idKey = columns.find(c => c.toLowerCase() === 'id' || c === 'รหัส' || c.includes('รหัสลูกค้า') || c.includes('รหัสสินค้า')) || columns[0];
+
+      const response = await fetch(`${n8nUrl}/webhook/db-write`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          action: editForm.isNew ? 'insert' : 'update', 
+          action: isInsert ? 'insert' : 'update', 
           sheet: activeDb, 
-          data: payload 
+          data: payload,
+          idKey: idKey,
+          row_number: isInsert ? undefined : editForm._rawRowNumber
         })
       });
       
       if (response.ok) {
+        Swal.fire({ icon: 'success', title: 'สำเร็จ', text: isInsert ? 'เพิ่มข้อมูลเรียบร้อยแล้ว' : 'แก้ไขข้อมูลเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
         setEditingId(null);
         fetchData(); 
       } else {
         const errorText = await response.text();
+        console.error('DB Write Error:', errorText);
         Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: errorText.substring(0, 300) });
       }
     } catch (error) {
+      console.error('DB Write Exception:', error);
       Swal.fire({ icon: 'error', title: 'เชื่อมต่อไม่ได้', text: error.message });
     } finally {
       setIsSaving(false);
@@ -221,10 +245,11 @@ export default function DatabaseManager() {
       if (result.isConfirmed) {
         setIsSaving(true);
         try {
+          const idKey = columns.find(c => c.toLowerCase() === 'id' || c === 'รหัส' || c.includes('รหัสลูกค้า') || c.includes('รหัสสินค้า')) || columns[0];
           const response = await fetch(`${getN8nUrl()}/webhook/db-write`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'delete', sheet: activeDb, data: { id: rowId, _rawRowNumber: row._rawRowNumber } })
+            body: JSON.stringify({ action: 'delete', sheet: activeDb, data: { [idKey]: rowId }, idKey: idKey, row_number: row._rawRowNumber })
           });
           
           if (response.ok) fetchData();
@@ -361,7 +386,14 @@ export default function DatabaseManager() {
                   )
                 })}
                 {data.length === 0 && !isLoading && !errorMsg && (
-                   <tr><td colSpan={columns.length + 1} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>ไม่มีข้อมูลในชีทนี้</td></tr>
+                   <tr>
+                     <td colSpan={columns.length + 1} style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+                       <div style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1.1rem' }}>ไม่มีข้อมูลในระบบ</div>
+                       <button className="btn-pill primary" onClick={handleAdd} style={{ margin: '0 auto' }}>
+                         <Plus size={16} /> คลิกที่นี่เพื่อเพิ่มข้อมูล
+                       </button>
+                     </td>
+                   </tr>
                 )}
                 {isLoading && (
                    <tr><td colSpan={columns.length + 1} style={{ textAlign: 'center', padding: '3rem', color: 'var(--accent-primary)' }}>กำลังโหลดข้อมูล...</td></tr>

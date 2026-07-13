@@ -22,9 +22,9 @@ export default function Dashboard() {
     try {
       setLoading(true);
       const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-      if (!settings.n8nUrl) throw new Error('No n8n URL');
+      const n8nUrl = settings.n8nUrl || '';
 
-      const res = await fetch(`${settings.n8nUrl}/webhook/dashboard`);
+      const res = await fetch(`${n8nUrl}/webhook/dashboard`);
       const json = await res.json();
       
       if (json && !json.error) {

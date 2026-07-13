@@ -30,12 +30,7 @@ export default function LoginPage({ onLoginSuccess }) {
     setError('');
     setSuccessMsg('');
 
-    const n8nUrl = getSettings().n8nUrl;
-    if (!n8nUrl) {
-      setError('กรุณาตั้งค่า n8n URL ในหน้าการตั้งค่าก่อน');
-      setLoading(false);
-      return;
-    }
+    const n8nUrl = getSettings().n8nUrl || '';
 
     if (!isLoginTab && formData.password !== formData.confirmPassword) {
       setError('รหัสผ่านไม่ตรงกัน');

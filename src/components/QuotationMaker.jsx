@@ -38,8 +38,7 @@ export default function QuotationMaker() {
   const fetchCustomers = async () => {
     try {
       const s = getSettings();
-      if (!s.n8nUrl) return;
-      const res = await fetch(`${s.n8nUrl}/webhook/project?t=${Date.now()}`);
+      const res = await fetch(`${s.n8nUrl || ''}/webhook/db-read?sheet=customer&t=${Date.now()}`);
       const data = await res.json();
       if (Array.isArray(data)) setCustomers(data);
     } catch (err) {
@@ -53,8 +52,7 @@ export default function QuotationMaker() {
       setSettings(prev => ({ ...prev, ...localProfile }));
 
       const s = getSettings();
-      if (!s.n8nUrl) return;
-      const res = await fetch(`${s.n8nUrl}/webhook/settings?t=${Date.now()}`);
+      const res = await fetch(`${s.n8nUrl || ''}/webhook/settings?t=${Date.now()}`);
       const result = await res.json();
       const data = Array.isArray(result) && result[0]?.json ? result[0].json : (Array.isArray(result) ? result[0] : result);
       
@@ -135,7 +133,7 @@ export default function QuotationMaker() {
     setLoading(true);
     try {
       const s = getSettings();
-      const res = await fetch(`${s.n8nUrl}/webhook/ai-assistant`, {
+      const res = await fetch(`${s.n8nUrl || ''}/webhook/ai-assistant`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: `ร่างใบเสนอราคา: ${aiPrompt}` })
@@ -176,7 +174,7 @@ export default function QuotationMaker() {
     try {
       setLoading(true);
       const s = getSettings();
-      await fetch(`${s.n8nUrl}/webhook/quotations`, {
+      await fetch(`${s.n8nUrl || ''}/webhook/quotations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -284,10 +282,7 @@ export default function QuotationMaker() {
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-            <button className="btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={saveQuotation} disabled={loading}>
-              <Save size={18} /> บันทึก
-            </button>
-            <button className="btn-primary" style={{ flex: 1, justifyContent: 'center', background: 'var(--text-secondary)' }} onClick={() => window.print()}>
+            <button className="btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => window.print()}>
               <Printer size={18} /> พิมพ์ / PDF
             </button>
           </div>
@@ -356,7 +351,7 @@ export default function QuotationMaker() {
             </table>
 
             {/* Totals */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
+            <div className="print-totals-section" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
               <div style={{ width: '60%' }}>
                 <p><strong>หมายเหตุ:</strong> {quoteData.remark}</p>
               </div>
@@ -381,7 +376,7 @@ export default function QuotationMaker() {
             </div>
 
             {/* Signatures */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4rem' }}>
+            <div className="print-signature-section" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4rem' }}>
               <div style={styles.signatureBox}>
                 <div style={styles.signatureLine}></div>
                 <p>ผู้เสนอราคา</p>
@@ -415,11 +410,72 @@ export default function QuotationMaker() {
           padding: 20mm; margin: 0 auto; box-shadow: var(--shadow-lg);
           font-family: 'Sarabun', 'Prompt', sans-serif;
         }
+        .a4-preview table {
+          border-collapse: collapse;
+          width: 100%;
+        }
+        .a4-preview table th,
+        .a4-preview table td {
+          border: 1px solid #ccc;
+          padding: 6px 8px;
+          font-size: 13px;
+        }
+        .a4-preview table th {
+          background: #f3f4f6;
+          font-weight: 600;
+        }
         @media print {
+          @page {
+            size: A4;
+            margin: 15mm 15mm 20mm 15mm;
+          }
+          html, body {
+            width: 210mm;
+            height: auto;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            color: black !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
           body * { visibility: hidden; }
           .print-area, .print-area * { visibility: visible; }
-          .print-area { position: absolute; left: 0; top: 0; width: 210mm; box-shadow: none; padding: 0; }
+          .print-area {
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            min-height: auto !important;
+            background: white !important;
+            color: black !important;
+          }
           .no-print { display: none !important; }
+          
+          /* Table pagination support */
+          .print-area table {
+            page-break-inside: auto;
+          }
+          .print-area table thead {
+            display: table-header-group;
+          }
+          .print-area table tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+          }
+          
+          /* Signature section stays together and at bottom */
+          .print-signature-section {
+            page-break-inside: avoid;
+            margin-top: 3rem;
+          }
+
+          /* Totals section stays together */
+          .print-totals-section {
+            page-break-inside: avoid;
+          }
         }
       `}} />
     </div>

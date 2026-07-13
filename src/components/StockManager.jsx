@@ -28,15 +28,21 @@ export default function StockManager() {
     try {
       setLoading(true);
       const s = getSettings();
-      if (!s.n8nUrl) return;
+
       
-      let res = await fetch(`${s.n8nUrl}/webhook/product?t=${Date.now()}`);
+      let res = await fetch(`${s.n8nUrl || ''}/webhook/db-read?sheet=product&t=${Date.now()}`);
       if (!res.ok) {
-        res = await fetch(`${s.n8nUrl}/webhook/stock?t=${Date.now()}`);
+        res = await fetch(`${s.n8nUrl || ''}/webhook/db-read?sheet=stock&t=${Date.now()}`);
       }
 
       if (res.ok) {
-        const result = await res.json();
+        const text = await res.text();
+        let result = [];
+        try {
+          if (text && text.trim()) result = JSON.parse(text);
+        } catch (e) {
+          console.warn('Response is not valid JSON:', text);
+        }
         let rawData = [];
         if (Array.isArray(result) && result[0]?.json) rawData = result.map(item => item.json);
         else if (Array.isArray(result)) rawData = result;
@@ -77,7 +83,7 @@ export default function StockManager() {
       const s = getSettings();
       const prompt = `${stockForm.type === 'add' ? 'เพิ่ม' : 'ตัด'}สต็อก ${stockForm.productName} ${stockForm.amount} ${stockForm.unit}`;
       
-      const res = await fetch(`${s.n8nUrl}/webhook/ai-assistant`, {
+      const res = await fetch(`${s.n8nUrl || ''}/webhook/ai-assistant`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
@@ -174,6 +180,16 @@ export default function StockManager() {
                         </td>
                       </tr>
                     ))}
+                    {filteredProducts.length === 0 && !loading && (
+                      <tr>
+                        <td colSpan="5" style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+                          <div style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1.1rem' }}>ไม่มีข้อมูลสินค้าในระบบ</div>
+                          <button className="btn-primary" onClick={() => setActiveTab('log')} style={{ margin: '0 auto' }}>
+                            <Plus size={16} /> ไปที่หน้าบันทึกเข้า/ออกสต็อกเพื่อเพิ่มข้อมูล
+                          </button>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
