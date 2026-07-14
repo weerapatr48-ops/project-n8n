@@ -231,12 +231,9 @@ export default function DatabaseManager() {
   };
 
   const handleDelete = (row) => {
-    const idKey = columns.find(c => c.toLowerCase() === 'id' || c === 'รหัส') || columns[0];
-    const rowId = row[idKey];
-    
     Swal.fire({
       title: 'ยืนยันการลบ',
-      text: `คุณต้องการลบข้อมูลนี้ใช่หรือไม่?`,
+      text: 'คุณต้องการลบข้อมูลนี้ใช่หรือไม่?',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
@@ -245,11 +242,10 @@ export default function DatabaseManager() {
       if (result.isConfirmed) {
         setIsSaving(true);
         try {
-          const idKey = columns.find(c => c.toLowerCase() === 'id' || c === 'รหัส' || c.includes('รหัสลูกค้า') || c.includes('รหัสสินค้า')) || columns[0];
           const response = await fetch(`${getN8nUrl()}/webhook/db-write`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'delete', sheet: activeDb, data: { [idKey]: rowId }, idKey: idKey, row_number: row._rawRowNumber })
+            body: JSON.stringify({ action: 'delete', sheet: activeDb, data: { row_number: row._rawRowNumber } })
           });
           
           if (response.ok) fetchData();
