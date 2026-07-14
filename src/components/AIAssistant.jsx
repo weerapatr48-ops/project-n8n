@@ -278,14 +278,6 @@ export default function AIAssistant() {
     setIsGenerating(true);
 
     const url = getN8nUrl();
-    if (!url) {
-      setChatHistory(prev => [...prev, {
-        role: 'ai', type: 'error',
-        message: '❌ ยังไม่ได้ตั้งค่า URL ของ n8n\nกรุณาไปที่เมนู "ตั้งค่า" เพื่อกรอก n8n Webhook URL ก่อนครับ'
-      }]);
-      setIsGenerating(false);
-      return;
-    }
 
     try {
       const res = await fetch(`${url}/webhook/ai-assistant`, {
