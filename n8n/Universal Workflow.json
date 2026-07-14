@@ -265,7 +265,13 @@
         },
         "columns": {
           "mappingMode": "defineBelow",
-          "value": {},
+          "value": {
+            "id": "={{ $execution.id }}",
+            "name": "={{ $json.body.name }}",
+            "email": "={{ $json.body.email }}",
+            "password": "={{ $json.body.password }}",
+            "role": "={{ $json.body.role }}"
+          },
           "matchingColumns": [
             "id"
           ],
@@ -2478,6 +2484,45 @@
           "executionMode": "production"
         }
       }
+    ],
+    "POST /auth/register": [
+      {
+        "json": {
+          "headers": {
+            "host": "localhost:5678",
+            "connection": "close",
+            "content-length": "71",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Not;A=Brand\";v=\"8\", \"Chromium\";v=\"150\", \"Brave\";v=\"150\"",
+            "content-type": "application/json",
+            "sec-ch-ua-mobile": "?0",
+            "accept": "*/*",
+            "sec-gpc": "1",
+            "accept-language": "en-US,en;q=0.5",
+            "origin": "http://localhost:5173",
+            "sec-fetch-site": "same-origin",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "referer": "http://localhost:5173/",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "cookie": "rl_page_init_referrer=RudderEncrypt%3AU2FsdGVkX1876bjKl1i5fc%2FrwyOln0PMQnwt%2BjY9rY4%3D; rl_page_init_referring_domain=RudderEncrypt%3AU2FsdGVkX1%2BhNByQ06DVW2MlZAdgwPgVpREEr6XA7%2Fw%3D; ph_phc_4URIAm1uYfJO7j8kWSe0J8lc8IqnstRLS7Jx8NcakHo_posthog=%7B%22%24device_id%22%3A%22019f1c52-da5b-7b9b-b578-9b451ca82785%22%2C%22distinct_id%22%3A%229b9d3148ecc4dc5db52cdb82946e6bceeafb35f3f7da0f61a7e079618eddb113%238164cc8d-c552-4832-916a-bd8abf305e37%22%2C%22%24sesid%22%3A%5B1783648681768%2C%22019f49bd-cdf7-790d-9dda-6cfee73c1e17%22%2C1783648603637%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A5678%2Fsignin%3Fredirect%3D%25252F%22%7D%2C%22%24user_state%22%3A%22identified%22%7D; rl_anonymous_id=RudderEncrypt%3AU2FsdGVkX19VcLOCTdPGOQkPfHlIER7bzb%2FUfOz2%2BDgmJFWsUTWhPqKdjJaNW6MuQ55qjeo19sBHYkS3b%2BjmgQ%3D%3D; rl_user_id=RudderEncrypt%3AU2FsdGVkX18938OnNgW322%2BRwjLIFsfjo7nHm2upecHVn6c06pwJphcI9zdVOtRnRSl10oD%2B5dgbR5xApR2e6ZyPAtrNDnKdtpFT6BN6rheEWZe3FvxtY%2BxHexqXWhe7GEj3MzAY%2BZvKkwF6BGp4Mg%2FapX%2F4oMsSRTOZLDiuARU%3D; rl_trait=RudderEncrypt%3AU2FsdGVkX19Lozjzj9gPq4dt3lx4Hv9%2BTgxzUIwq8pRRK3NKG9w1wq2VwKeUIZy13%2FwVPWLh3AdyLmX%2BeHph3HGZAlqnsU43WxJHpzlQlmwa4N1hfx3B%2Bdzu%2BMjj41OHH6hrQhSN4ZiMNIxY%2F%2BWLhTSQmbUl%2FOGg0T1W7e0W6j56mduqGTtgYYxTl7RJA2UcrVxgnR6OVx7fej09wIzaeA%3D%3D; ph_phc_kMstNfAgBcBkWSh6KdsgN09heqqNe5VNmalHP1Ni9Q4_posthog=%7B%22%24device_id%22%3A%229b9d3148ecc4dc5db52cdb82946e6bceeafb35f3f7da0f61a7e079618eddb113%238164cc8d-c552-4832-916a-bd8abf305e37%22%2C%22distinct_id%22%3A%229b9d3148ecc4dc5db52cdb82946e6bceeafb35f3f7da0f61a7e079618eddb113%238164cc8d-c552-4832-916a-bd8abf305e37%22%2C%22%24sesid%22%3A%5B1783995765786%2C%22019f5e42-2f21-76cd-b057-1e9d6e206958%22%2C1783992823575%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A5678%2F%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D; rl_session=RudderEncrypt%3AU2FsdGVkX1%2Bsu%2FKxnx0jsrq4imj8r04RI8iqVF4U5nHYPwHgPGPXKtLz3g7PLC238RfdF%2B8wcCVFY1IKhtsPWwuVCeN7lijR5Z1RwbN8BAx%2FwouPkg75GWBSu%2FC7keuaUzJBWmN9QGRgBKfpikxDPA%3D%3D"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "name": "kuy",
+            "email": "test@gmail",
+            "password": "12345678",
+            "role": "sale"
+          },
+          "webhookUrl": "http://localhost:5678/webhook/auth/register",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
     ]
   },
   "connections": {
@@ -3001,10 +3046,9 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "8b1e6b3e-2d01-4d00-bfcc-1ab9bbb4e2fb",
+  "versionId": "50548ec9-9d6a-46ec-80d6-9f00f5efde45",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "9b9d3148ecc4dc5db52cdb82946e6bceeafb35f3f7da0f61a7e079618eddb113"
+    "templateCredsSetupCompleted": true
   },
   "nodeGroups": [],
   "id": "OKcPplQvuwPnVQzy",
