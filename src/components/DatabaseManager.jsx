@@ -41,6 +41,31 @@ export default function DatabaseManager() {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  const [employees, setEmployees] = useState([]);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const n8nUrl = getN8nUrl();
+        const res = await fetch(`${n8nUrl}/webhook/db-read?sheet=empolyee`);
+        const text = await res.text();
+        const result = JSON.parse(text);
+        let empData = [];
+        if (Array.isArray(result)) {
+          empData = result.length > 0 && result[0]?.json ? result.map(i => i.json) : result;
+        } else if (result && typeof result === 'object' && !result.error) {
+           const keys = Object.keys(result);
+           const hasNumericKeys = keys.length > 0 && keys.every(k => !isNaN(k));
+           if (hasNumericKeys) empData = Object.values(result);
+           else empData = [result];
+        }
+        setEmployees(empData);
+      } catch (e) {
+        console.error('Failed to fetch employees:', e);
+      }
+    };
+    fetchEmployees();
+  }, []);
 
   useEffect(() => {
     if (activeDb && activeDb !== 'stock_ui') {
@@ -351,13 +376,43 @@ export default function DatabaseManager() {
                       {columns.map(col => (
                         <td key={col}>
                           {isEditing ? (
-                            <input 
-                              type="text" 
-                              className="minimal-input" 
-                              value={editForm[col] !== undefined ? editForm[col] : ''} 
-                              onChange={(e) => handleEditChange(col, e.target.value)} 
-                              placeholder={col}
-                            />
+                            col === 'ชื่อกลุ่มระดับลูกค้า/ผู้ขาย' || col.toLowerCase().includes('ประเภท') ? (
+                              <select 
+                                className="minimal-input" 
+                                value={editForm[col] !== undefined ? editForm[col] : ''} 
+                                onChange={(e) => handleEditChange(col, e.target.value)}
+                              >
+                                <option value="">-- เลือก --</option>
+                                <option value="Credit">Credit</option>
+                                <option value="Vender">Vender</option>
+                              </select>
+                            ) : col.toLowerCase().replace(/\s/g, '') === 'รหัสpic' || col.toLowerCase().replace(/\s/g, '') === 'pic' ? (
+                              <select 
+                                className="minimal-input" 
+                                value={editForm[col] !== undefined ? editForm[col] : ''} 
+                                onChange={(e) => handleEditChange(col, e.target.value)}
+                              >
+                                <option value="">-- เลือกรหัส PIC --</option>
+                                {employees.map((emp, idx) => {
+                                  const picCode = String(emp['รหัสpic'] || emp['รหัสPIC'] || emp['รหัส PIC'] || emp.id || '').trim();
+                                  const picName = emp['ชื่อpic'] || emp['ชื่อ PIC'] || emp.name || '';
+                                  if (!picCode) return null;
+                                  return (
+                                    <option key={idx} value={picCode}>
+                                      {picCode} {picName ? `- ${picName}` : ''}
+                                    </option>
+                                  );
+                                })}
+                              </select>
+                            ) : (
+                              <input 
+                                type="text" 
+                                className="minimal-input" 
+                                value={editForm[col] !== undefined ? editForm[col] : ''} 
+                                onChange={(e) => handleEditChange(col, e.target.value)} 
+                                placeholder={col}
+                              />
+                            )
                           ) : (
                             <div style={{ maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {row[col] || '-'}
