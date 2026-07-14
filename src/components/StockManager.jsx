@@ -54,9 +54,12 @@ export default function StockManager() {
             'รหัส': row['รหัส'] || row['รหัสสินค้า'] || row['ProductID'] || row.id || '-',
             'ชื่อ': row['ชื่อ'] || row['ชื่อสินค้า'] || row['ProductName'] || row.name || '-',
             'หน่วย': row['หน่วย'] || row['Unit'] || row.unit || 'ชิ้น',
-            'ราคาขาย': row['ราคาขาย'] || row['ราคา'] || row['Price'] || row.price || 0,
+            'คงเหลือ': row['คงเหลือ'] || row['จำนวน'] || row['ยอดคงเหลือ'] || row['Qty'] || row['Quantity'] || row['จำนวนคงเหลือ'] || 0,
             'สถานะ': row['สถานะ'] || row['Status'] || row.status || 'Active'
           })).filter(row => row['ชื่อ'] && row['ชื่อ'] !== '-');
+          
+          mappedProducts.sort((a, b) => String(a['รหัส'] || '').localeCompare(String(b['รหัส'] || ''), undefined, { numeric: true, sensitivity: 'base' }));
+          
           setProducts(mappedProducts);
           return;
         }
@@ -160,6 +163,7 @@ export default function StockManager() {
                     <tr>
                       <th>รหัสสินค้า</th>
                       <th>ชื่อสินค้า</th>
+                      <th style={{ textAlign: 'right' }}>จำนวนคงเหลือ</th>
                       <th>หน่วย</th>
                       <th style={{ textAlign: 'right' }}>ราคาขาย</th>
                       <th>สถานะ</th>
@@ -170,6 +174,9 @@ export default function StockManager() {
                       <tr key={i}>
                         <td style={{ fontWeight: 500 }}>{p['รหัส']}</td>
                         <td>{p['ชื่อ']}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 'bold', color: p['คงเหลือ'] <= 5 ? 'var(--danger-color)' : 'inherit' }}>
+                          {formatMoney(p['คงเหลือ'] || 0)}
+                        </td>
                         <td>{p['หน่วย']}</td>
                         <td style={{ textAlign: 'right' }}>{formatMoney(p['ราคาขาย'] || 0)}</td>
                         <td>

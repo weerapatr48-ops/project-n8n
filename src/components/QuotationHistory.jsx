@@ -25,6 +25,13 @@ export default function QuotationHistory() {
         if (Array.isArray(result) && result[0]?.json) rawData = result.map(item => item.json);
         else if (Array.isArray(result)) rawData = result;
         else if (result && Array.isArray(result.data)) rawData = result.data;
+        
+        rawData.sort((a, b) => {
+          const idA = String(a.id || a['เลขที่'] || a['เลขที่ใบเสนอราคา'] || a['รหัส'] || '');
+          const idB = String(b.id || b['เลขที่'] || b['เลขที่ใบเสนอราคา'] || b['รหัส'] || '');
+          return idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
+        });
+        
         setData(rawData);
       } else {
         throw new Error('API Error');

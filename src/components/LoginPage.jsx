@@ -41,10 +41,43 @@ export default function LoginPage({ onLoginSuccess }) {
     const endpoint = isLoginTab ? '/webhook/auth/login' : '/webhook/auth/register';
     
     try {
+      let customId = undefined;
+      
+      if (!isLoginTab) {
+        // Fetch existing users to generate custom ID
+        try {
+          const usersRes = await fetch(`${n8nUrl}/webhook/db-read?sheet=Users`);
+          const text = await usersRes.text();
+          const result = JSON.parse(text);
+          let rawData = [];
+          if (Array.isArray(result) && result[0]?.json) rawData = result.map(i => i.json);
+          else if (Array.isArray(result)) rawData = result;
+          else if (result && result.data) rawData = result.data;
+          
+          const prefixMap = { sale: 'sal', manager: 'mgr', stock: 'stk', admin: 'adm' };
+          const prefix = prefixMap[formData.role] || 'usr';
+          
+          let maxNum = 0;
+          rawData.forEach(user => {
+            if (user.id && user.id.startsWith(prefix)) {
+              const numStr = user.id.replace(prefix, '');
+              const num = parseInt(numStr, 10);
+              if (!isNaN(num) && num > maxNum) maxNum = num;
+            }
+          });
+          
+          customId = `${prefix}${String(maxNum + 1).padStart(3, '0')}`;
+        } catch (e) {
+          console.error('Failed to generate ID:', e);
+        }
+      }
+
       // Create a unified payload
       const payload = isLoginTab 
         ? { email: formData.email, password: formData.password }
-        : { name: formData.name, email: formData.email, password: formData.password, role: formData.role };
+        : { id: customId || `${formData.role || 'usr'}-FAIL-${Date.now()}`, name: formData.name, email: formData.email, password: formData.password, role: formData.role };
+        
+      console.log('Sending Registration Payload:', payload);
 
       const res = await fetch(`${n8nUrl}${endpoint}`, {
         method: 'POST',

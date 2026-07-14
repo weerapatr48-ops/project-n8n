@@ -150,6 +150,15 @@ export default function DatabaseManager() {
             cols.unshift(idCol);
           }
           
+          const idKey = cols.find(c => c.toLowerCase() === 'id' || c.toLowerCase().includes('รหัส')) || cols[0];
+
+          // Sort data by ID
+          rawData.sort((a, b) => {
+            const idA = String(a[idKey] || '');
+            const idB = String(b[idKey] || '');
+            return idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
+          });
+          
           setColumns(cols);
           
           const mappedData = rawData.map((row, index) => {
