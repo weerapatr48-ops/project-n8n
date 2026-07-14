@@ -235,6 +235,67 @@ export default function DatabaseManager() {
 
       const idKey = columns.find(c => c.toLowerCase() === 'id' || c === 'รหัส' || c.includes('รหัสลูกค้า') || c.includes('รหัสสินค้า')) || columns[0];
 
+      // ====== CUSTOM ID GENERATION FOR CUSTOMERS ======
+      if (isInsert && activeDb === 'customer') {
+        const groupKey = columns.find(c => c.includes('ชื่อกลุ่มระดับลูกค้า')) || 'ชื่อกลุ่มระดับลูกค้า/ผู้ขาย';
+        const nameKey = columns.find(c => c.includes('ชื่อลูกค้า')) || 'ชื่อลูกค้า/ผู้ขาย';
+        
+        const groupValue = (payload[groupKey] || '').toString().toLowerCase();
+        let firstChar = 'C'; 
+        if (groupValue.includes('vender') || groupValue.includes('vendor')) {
+          firstChar = 'P';
+        } else if (groupValue.includes('credit')) {
+          firstChar = 'C';
+        }
+
+        const nameValue = (payload[nameKey] || '').toString();
+        
+        const getEnglishInitial = (text) => {
+          // ตัดคำนำหน้าบริษัทออก เพื่อไม่ให้ทุกบริษัทเริ่มด้วย B (บริษัท) หมด
+          let cleanText = text.replace(/^(บริษัท|บจก\.|บมจ\.|หจก\.|ห้างหุ้นส่วนจำกัด|ร้าน)\s*/g, '').trim();
+          if (!cleanText) cleanText = text;
+          
+          // ถ้ามีภาษาอังกฤษ เอาตัวแรกมาเลย
+          const engMatch = cleanText.match(/[a-zA-Z]/);
+          if (engMatch) return engMatch[0].toUpperCase();
+          
+          // ถ้าไม่มี ให้หาพยัญชนะไทยตัวแรก แล้วแปลงเป็นอังกฤษ
+          const consonantMatch = cleanText.match(/[ก-ฮ]/);
+          if (consonantMatch) {
+            const map = {
+              'ก':'K','ข':'K','ฃ':'K','ค':'K','ฅ':'K','ฆ':'K','ง':'N','จ':'J',
+              'ฉ':'C','ช':'C','ซ':'S','ฌ':'C','ญ':'Y','ฎ':'D','ฏ':'T','ฐ':'T',
+              'ฑ':'T','ฒ':'T','ณ':'N','ด':'D','ต':'T','ถ':'T','ท':'T','ธ':'T',
+              'น':'N','บ':'B','ป':'P','ผ':'P','ฝ':'F','พ':'P','ฟ':'F','ภ':'P',
+              'ม':'M','ย':'Y','ร':'R','ล':'L','ว':'W','ศ':'S','ษ':'S','ส':'S',
+              'ห':'H','ฬ':'L','อ':'O','ฮ':'H'
+            };
+            return map[consonantMatch[0]] || 'X';
+          }
+          return 'X';
+        };
+
+        const secondChar = getEnglishInitial(nameValue);
+        
+        const prefix = `${firstChar}${secondChar}`;
+        let maxNum = 0;
+        
+        data.forEach(row => {
+          const existingId = (row[idKey] || '').toString();
+          if (existingId.startsWith(prefix)) {
+            const numPart = existingId.substring(2);
+            const num = parseInt(numPart, 10);
+            if (!isNaN(num) && num > maxNum) {
+              maxNum = num;
+            }
+          }
+        });
+        
+        const nextNum = (maxNum + 1).toString().padStart(3, '0');
+        payload[idKey] = `${prefix}${nextNum}`;
+      }
+      // ================================================
+
       const response = await fetch(`${n8nUrl}/webhook/db-write`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -376,7 +437,7 @@ export default function DatabaseManager() {
               </thead>
               <tbody>
                 {data.map((row, i) => {
-                  const idKey = columns.find(c => c.toLowerCase() === 'id' || c === 'รหัส') || columns[0];
+                  const idKey = columns.find(c => c.toLowerCase() === 'id' || c === 'รหัส' || c.includes('รหัสลูกค้า') || c.includes('รหัสสินค้า') || c.includes('รหัสพนักงาน')) || columns[0];
                   const rowId = row[idKey];
                   const isEditing = editingId === rowId;
                   
@@ -417,9 +478,11 @@ export default function DatabaseManager() {
                               <input 
                                 type="text" 
                                 className="minimal-input" 
-                                value={editForm[col] !== undefined ? editForm[col] : ''} 
+                                value={col === idKey && editForm.isNew ? '' : (editForm[col] !== undefined ? editForm[col] : '')} 
                                 onChange={(e) => handleEditChange(col, e.target.value)} 
-                                placeholder={col}
+                                placeholder={col === idKey && editForm.isNew ? '(สร้างอัตโนมัติตอนบันทึก)' : col}
+                                disabled={col === idKey}
+                                style={col === idKey ? { backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-muted)', cursor: 'not-allowed' } : {}}
                               />
                             )
                           ) : (

@@ -1,7 +1,4 @@
 {
-  "id": "OKcPplQvuwPnVQzy",
-  "name": "Universal Workflow",
-  "active": 1,
   "nodes": [
     {
       "parameters": {
@@ -557,7 +554,6 @@
     },
     {
       "parameters": {
-        "modelName": "models/gemini-1.5-flash",
         "options": {
           "temperature": 0.3
         }
@@ -685,7 +681,16 @@
         },
         "columns": {
           "mappingMode": "defineBelow",
-          "value": {},
+          "value": {
+            "รหัสลูกค้า/ผู้ขาย": "={{ $json.data.payload.id || $execution.id }}",
+            "ชื่อลูกค้า/ผู้ขาย": "={{ $json.data.payload.name }}",
+            "โทรศัพท์": "={{ $json.data.payload.phone }}",
+            "อีเมล": "={{ $json.data.payload.email }}",
+            "ที่อยู่ 1": "={{ $json.data.payload.address }}",
+            "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย": "={{ $json.data.payload.taxId }}",
+            "หมายเหตุ": "={{ $json.data.payload.remark }}",
+            "Type": "={{ $json.data.payload.type }}"
+          },
           "matchingColumns": [],
           "schema": [
             {
@@ -970,9 +975,18 @@
         },
         "columns": {
           "mappingMode": "defineBelow",
-          "value": {},
+          "value": {
+            "รหัสลูกค้า/ผู้ขาย": "={{ $json.data.payload.id || $execution.id }}",
+            "ชื่อลูกค้า/ผู้ขาย": "={{ $json.data.payload.name }}",
+            "โทรศัพท์": "={{ $json.data.payload.phone }}",
+            "อีเมล": "={{ $json.data.payload.email }}",
+            "ที่อยู่ 1": "={{ $json.data.payload.address }}",
+            "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย": "={{ $json.data.payload.taxId }}",
+            "หมายเหตุ": "={{ $json.data.payload.remark }}",
+            "Type": "={{ $json.data.payload.type }}"
+          },
           "matchingColumns": [
-            "ชื่อลูกค้า/ผู้ขาย"
+            "รหัสลูกค้า/ผู้ขาย"
           ],
           "schema": [
             {
@@ -2451,6 +2465,48 @@
         -2032,
         1456
       ]
+    },
+    {
+      "id": "node_get_customers_1784022652915",
+      "name": "Sheets: Get Customers for ID",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -160,
+        -54
+      ],
+      "parameters": {
+        "operation": "getAll",
+        "documentId": {
+          "__rl": true,
+          "value": "1MepEshscXwfuq-KHI1IXIIX5xXCPhAptQRKOaX3Bwvk",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "customer",
+          "mode": "list"
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uZ7NI5YtrFpJkJ1b",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "node_code_generate_id_1784022652915",
+      "name": "Code: Generate ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        40,
+        46
+      ],
+      "parameters": {
+        "jsCode": "\nconst payload = $items(\"Router (DB Operation)1\")[0].json.data.payload;\nconst customers = $input.all().map(i => i.json);\n\nconst groupValue = (payload.type || '').toString().toLowerCase();\nlet firstChar = 'C'; \nif (groupValue.includes('vender') || groupValue.includes('vendor')) {\n  firstChar = 'P';\n} else if (groupValue.includes('credit')) {\n  firstChar = 'C';\n}\n\nconst nameValue = (payload.name || '').toString();\n\nconst getEnglishInitial = (text) => {\n  let cleanText = text.replace(/^(บริษัท|บจก\\.|บมจ\\.|หจก\\.|ห้างหุ้นส่วนจำกัด|ร้าน)\\s*/g, '').trim();\n  if (!cleanText) cleanText = text;\n  \n  const engMatch = cleanText.match(/[a-zA-Z]/);\n  if (engMatch) return engMatch[0].toUpperCase();\n  \n  const consonantMatch = cleanText.match(/[ก-ฮ]/);\n  if (consonantMatch) {\n    const map = {\n      'ก':'K','ข':'K','ฃ':'K','ค':'K','ฅ':'K','ฆ':'K','ง':'N','จ':'J',\n      'ฉ':'C','ช':'C','ซ':'S','ฌ':'C','ญ':'Y','ฎ':'D','ฏ':'T','ฐ':'T',\n      'ฑ':'T','ฒ':'T','ณ':'N','ด':'D','ต':'T','ถ':'T','ท':'T','ธ':'T',\n      'น':'N','บ':'B','ป':'P','ผ':'P','ฝ':'F','พ':'P','ฟ':'F','ภ':'P',\n      'ม':'M','ย':'Y','ร':'R','ล':'L','ว':'W','ศ':'S','ษ':'S','ส':'S',\n      'ห':'H','ฬ':'L','อ':'O','ฮ':'H'\n    };\n    return map[consonantMatch[0]] || 'X';\n  }\n  return 'X';\n};\n\nconst secondChar = getEnglishInitial(nameValue);\nconst prefix = `${firstChar}${secondChar}`;\nlet maxNum = 0;\n\ncustomers.forEach(row => {\n  const existingId = (row['รหัสลูกค้า/ผู้ขาย'] || row['id'] || '').toString();\n  if (existingId.startsWith(prefix)) {\n    const numPart = existingId.substring(2);\n    const num = parseInt(numPart, 10);\n    if (!isNaN(num) && num > maxNum) {\n      maxNum = num;\n    }\n  }\n});\n\nconst nextNum = (maxNum + 1).toString().padStart(3, '0');\nconst finalId = `${prefix}${nextNum}`;\n\npayload.id = finalId;\n\nreturn [{\n  json: {\n    data: {\n      payload: payload,\n      table: \"customers\",\n      operation: \"add\"\n    }\n  }\n}];\n"
+      }
     }
   ],
   "connections": {
@@ -2710,7 +2766,7 @@
       "main": [
         [
           {
-            "node": "Sheets: Add Row1",
+            "node": "Sheets: Get Customers for ID",
             "type": "main",
             "index": 0
           }
@@ -2967,21 +3023,28 @@
           }
         ]
       ]
+    },
+    "Sheets: Get Customers for ID": {
+      "main": [
+        [
+          {
+            "node": "Code: Generate ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generate ID": {
+      "main": [
+        [
+          {
+            "node": "Sheets: Add Row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
-  },
-  "settings": "{\"executionOrder\":\"v1\",\"binaryMode\":\"separate\"}",
-  "staticData": null,
-  "pinData": "{\"POST /auth/login\":[{\"json\":{\"headers\":{\"host\":\"localhost:5678\",\"connection\":\"keep-alive\",\"content-length\":\"49\",\"sec-ch-ua-platform\":\"\\\"Windows\\\"\",\"user-agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36\",\"sec-ch-ua\":\"\\\"Not;A=Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"150\\\", \\\"Brave\\\";v=\\\"150\\\"\",\"content-type\":\"application/json\",\"sec-ch-ua-mobile\":\"?0\",\"accept\":\"*/*\",\"sec-gpc\":\"1\",\"accept-language\":\"en-US,en;q=0.5\",\"origin\":\"http://localhost:5173\",\"sec-fetch-site\":\"same-site\",\"sec-fetch-mode\":\"cors\",\"sec-fetch-dest\":\"empty\",\"referer\":\"http://localhost:5173/\",\"accept-encoding\":\"gzip, deflate, br, zstd\"},\"params\":{},\"query\":{},\"body\":{\"email\":\"admin@admin.com\",\"password\":\"admin123\"},\"webhookUrl\":\"http://localhost:5678/webhook/auth/login\",\"executionMode\":\"production\"}}],\"POST /auth/register\":[{\"json\":{\"headers\":{\"host\":\"localhost:5678\",\"connection\":\"close\",\"content-length\":\"71\",\"sec-ch-ua-platform\":\"\\\"Windows\\\"\",\"user-agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36\",\"sec-ch-ua\":\"\\\"Not;A=Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"150\\\", \\\"Brave\\\";v=\\\"150\\\"\",\"content-type\":\"application/json\",\"sec-ch-ua-mobile\":\"?0\",\"accept\":\"*/*\",\"sec-gpc\":\"1\",\"accept-language\":\"en-US,en;q=0.5\",\"origin\":\"http://localhost:5173\",\"sec-fetch-site\":\"same-origin\",\"sec-fetch-mode\":\"cors\",\"sec-fetch-dest\":\"empty\",\"referer\":\"http://localhost:5173/\",\"accept-encoding\":\"gzip, deflate, br, zstd\",\"cookie\":\"rl_page_init_referrer=RudderEncrypt%3AU2FsdGVkX1876bjKl1i5fc%2FrwyOln0PMQnwt%2BjY9rY4%3D; rl_page_init_referring_domain=RudderEncrypt%3AU2FsdGVkX1%2BhNByQ06DVW2MlZAdgwPgVpREEr6XA7%2Fw%3D; ph_phc_4URIAm1uYfJO7j8kWSe0J8lc8IqnstRLS7Jx8NcakHo_posthog=%7B%22%24device_id%22%3A%22019f1c52-da5b-7b9b-b578-9b451ca82785%22%2C%22distinct_id%22%3A%229b9d3148ecc4dc5db52cdb82946e6bceeafb35f3f7da0f61a7e079618eddb113%238164cc8d-c552-4832-916a-bd8abf305e37%22%2C%22%24sesid%22%3A%5B1783648681768%2C%22019f49bd-cdf7-790d-9dda-6cfee73c1e17%22%2C1783648603637%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A5678%2Fsignin%3Fredirect%3D%25252F%22%7D%2C%22%24user_state%22%3A%22identified%22%7D; rl_anonymous_id=RudderEncrypt%3AU2FsdGVkX19VcLOCTdPGOQkPfHlIER7bzb%2FUfOz2%2BDgmJFWsUTWhPqKdjJaNW6MuQ55qjeo19sBHYkS3b%2BjmgQ%3D%3D; rl_user_id=RudderEncrypt%3AU2FsdGVkX18938OnNgW322%2BRwjLIFsfjo7nHm2upecHVn6c06pwJphcI9zdVOtRnRSl10oD%2B5dgbR5xApR2e6ZyPAtrNDnKdtpFT6BN6rheEWZe3FvxtY%2BxHexqXWhe7GEj3MzAY%2BZvKkwF6BGp4Mg%2FapX%2F4oMsSRTOZLDiuARU%3D; rl_trait=RudderEncrypt%3AU2FsdGVkX19Lozjzj9gPq4dt3lx4Hv9%2BTgxzUIwq8pRRK3NKG9w1wq2VwKeUIZy13%2FwVPWLh3AdyLmX%2BeHph3HGZAlqnsU43WxJHpzlQlmwa4N1hfx3B%2Bdzu%2BMjj41OHH6hrQhSN4ZiMNIxY%2F%2BWLhTSQmbUl%2FOGg0T1W7e0W6j56mduqGTtgYYxTl7RJA2UcrVxgnR6OVx7fej09wIzaeA%3D%3D; ph_phc_kMstNfAgBcBkWSh6KdsgN09heqqNe5VNmalHP1Ni9Q4_posthog=%7B%22%24device_id%22%3A%229b9d3148ecc4dc5db52cdb82946e6bceeafb35f3f7da0f61a7e079618eddb113%238164cc8d-c552-4832-916a-bd8abf305e37%22%2C%22distinct_id%22%3A%229b9d3148ecc4dc5db52cdb82946e6bceeafb35f3f7da0f61a7e079618eddb113%238164cc8d-c552-4832-916a-bd8abf305e37%22%2C%22%24sesid%22%3A%5B1783995765786%2C%22019f5e42-2f21-76cd-b057-1e9d6e206958%22%2C1783992823575%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22http%3A%2F%2Flocalhost%3A5678%2F%22%7D%2C%22%24user_state%22%3A%22anonymous%22%7D; rl_session=RudderEncrypt%3AU2FsdGVkX1%2Bsu%2FKxnx0jsrq4imj8r04RI8iqVF4U5nHYPwHgPGPXKtLz3g7PLC238RfdF%2B8wcCVFY1IKhtsPWwuVCeN7lijR5Z1RwbN8BAx%2FwouPkg75GWBSu%2FC7keuaUzJBWmN9QGRgBKfpikxDPA%3D%3D\"},\"params\":{},\"query\":{},\"body\":{\"name\":\"kuy\",\"email\":\"test@gmail\",\"password\":\"12345678\",\"role\":\"sale\"},\"webhookUrl\":\"http://localhost:5678/webhook/auth/register\",\"executionMode\":\"production\"},\"pairedItem\":{\"item\":0}}]}",
-  "versionId": "ec8584a4-2c6c-4a70-bca9-ba620323ace5",
-  "triggerCount": 13,
-  "meta": "{\"templateCredsSetupCompleted\":true}",
-  "parentFolderId": null,
-  "createdAt": "2026-07-06 08:03:29.439",
-  "updatedAt": "2026-07-14 03:57:16.686",
-  "isArchived": 0,
-  "versionCounter": 18,
-  "description": null,
-  "activeVersionId": "ec8584a4-2c6c-4a70-bca9-ba620323ace5",
-  "nodeGroups": "[]",
-  "sourceWorkflowId": null
+  }
 }
