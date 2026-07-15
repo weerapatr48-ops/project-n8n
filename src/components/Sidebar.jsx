@@ -25,6 +25,16 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
           </button>
         )}
 
+        {canAccess('ai') && (
+          <button 
+            className={`nav-item ${currentTab === 'ai' ? 'active' : ''}`}
+            onClick={() => setCurrentTab('ai')}
+          >
+            <Bot size={20} />
+            <span>AI ผู้ช่วยอัจฉริยะ</span>
+          </button>
+        )}
+
         {canAccess('quote') && (
           <button 
             className={`nav-item ${currentTab === 'quote_maker' ? 'active' : ''}`}
@@ -53,17 +63,6 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
             <span>จัดการฐานข้อมูล</span>
           </button>
         )}
-
-        {canAccess('ai') && (
-          <button 
-            className={`nav-item ${currentTab === 'ai' ? 'active' : ''}`}
-            onClick={() => setCurrentTab('ai')}
-          >
-            <Bot size={20} />
-            <span>AI ผู้ช่วยอัจฉริยะ</span>
-          </button>
-        )}
-
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <div style={{ padding: '0.75rem 1rem', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', marginBottom: '0.5rem' }}>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{user?.name}</p>

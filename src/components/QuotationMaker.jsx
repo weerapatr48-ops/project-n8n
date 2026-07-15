@@ -3,11 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import { FileText, Bot, Plus, Trash2, Printer, Save, Search, AlertTriangle } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-export default function QuotationMaker() {
+export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) {
   const { auth, canAccess } = useAuth();
   const [mode, setMode] = useState('manual'); // 'ai' or 'manual'
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [customersLoaded, setCustomersLoaded] = useState(false);
   const [settings, setSettings] = useState({});
   const [aiPrompt, setAiPrompt] = useState('');
   
@@ -35,6 +36,79 @@ export default function QuotationMaker() {
     calculateTotals();
   }, [quoteData.items]);
 
+  useEffect(() => {
+    if (aiQuotationData && customersLoaded) {
+      setQuoteData(prev => {
+        let newData = { ...prev };
+        
+        // Match customer from DB
+        const rawAiCust = aiQuotationData.customerInfo || aiQuotationData.customer;
+        let targetName = prev.customer.name;
+        let providedTaxId = prev.customer.taxId;
+        let providedAddress = prev.customer.address;
+        let providedPhone = prev.customer.phone;
+
+        if (typeof rawAiCust === 'string') {
+          targetName = rawAiCust;
+        } else if (rawAiCust && typeof rawAiCust === 'object') {
+          targetName = rawAiCust.name || rawAiCust.companyName || rawAiCust.customerName || rawAiCust['ชื่อลูกค้า'] || rawAiCust['ชื่อ'] || rawAiCust['ลูกค้า'] || targetName;
+          providedTaxId = rawAiCust.taxId || providedTaxId;
+          providedAddress = rawAiCust.address || providedAddress;
+          providedPhone = rawAiCust.phone || providedPhone;
+        }
+
+        const cleanStr = (s) => (s || '').toLowerCase().replace(/[^a-z0-9ก-๙]/g, '');
+        const targetClean = cleanStr(targetName);
+        
+        if (targetClean) {
+          let cust = customers.find(c => cleanStr(c['ชื่อลูกค้า/ผู้ขาย']) === targetClean);
+          if (!cust) {
+            cust = customers.find(c => cleanStr(c['ชื่อลูกค้า/ผู้ขาย']).includes(targetClean) || targetClean.includes(cleanStr(c['ชื่อลูกค้า/ผู้ขาย'])));
+          }
+          
+          if (cust) {
+            newData.customer = {
+              name: cust['ชื่อลูกค้า/ผู้ขาย'],
+              taxId: cust['เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย'] || '',
+              address: cust['ที่อยู่ 1'] || '',
+              phone: cust['โทรศัพท์'] || ''
+            };
+          } else {
+            newData.customer = { 
+              name: targetName,
+              taxId: providedTaxId,
+              address: providedAddress,
+              phone: providedPhone
+            };
+          }
+        }
+        
+        const aiItems = aiQuotationData.items || aiQuotationData['รายการสินค้า'] || aiQuotationData['สินค้า'] || [];
+        if (aiItems.length > 0) {
+          newData.items = aiItems.map((item, idx) => {
+            const desc = item.description || item.name || item['รายละเอียด'] || item['ชื่อสินค้า'] || item['สินค้า'] || '';
+            const qty = Number(item.quantity || item.qty || item['จำนวน'] || 1);
+            const unit = item.unit || item['หน่วย'] || 'ชิ้น';
+            const price = Number(item.price || item.unit_price || item.unitPrice || item['ราคา'] || item['ราคาต่อหน่วย'] || 0);
+            
+            return {
+              id: Date.now() + idx,
+              description: desc,
+              quantity: qty,
+              unit: unit,
+              unit_price: price,
+              total: qty * price
+            };
+          });
+        }
+        return newData;
+      });
+      if (setAiQuotationData) {
+        setAiQuotationData(null);
+      }
+    }
+  }, [aiQuotationData, customersLoaded, customers, setAiQuotationData]);
+
   const fetchCustomers = async () => {
     try {
       const s = getSettings();
@@ -43,6 +117,8 @@ export default function QuotationMaker() {
       if (Array.isArray(data)) setCustomers(data);
     } catch (err) {
       console.log('Failed to fetch customers');
+    } finally {
+      setCustomersLoaded(true);
     }
   };
 
@@ -243,9 +319,12 @@ export default function QuotationMaker() {
                 <label className="input-label">ชื่อลูกค้า</label>
                 <select className="input-field" style={{ flex: 1, width: '100%' }} value={quoteData.customer.name} onChange={handleCustomerSelect}>
                   <option value="">-- เลือกจากฐานข้อมูล --</option>
+                  {quoteData.customer.name && !customers.find(c => c['ชื่อลูกค้า/ผู้ขาย'] === quoteData.customer.name) && (
+                    <option value={quoteData.customer.name}>{quoteData.customer.name} (ระบุเองจาก AI)</option>
+                  )}
                   {customers.map((c, i) => (
                     <option key={i} value={c['ชื่อลูกค้า/ผู้ขาย']}>
-                      {c['ชื่อลูกค้า/ผู้ขาย']} {c['รหัสลูกค้า/ผู้ขาย'] ? `(${c['รหัสลูกค้า/ผู้ขาย']})` : ''}
+                      {c['ชื่อลูกค้า/ผู้ขาย']}
                     </option>
                   ))}
                 </select>

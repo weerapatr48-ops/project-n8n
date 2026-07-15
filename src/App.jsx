@@ -12,6 +12,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 function MainApp() {
   const { auth, logout, loading } = useAuth();
   const [currentTab, setCurrentTab] = useState('dashboard');
+  const [aiQuotationData, setAiQuotationData] = useState(null);
   const [isDark, setIsDark] = useState(() => {
     const savedTheme = localStorage.getItem('appTheme');
     if (savedTheme) {
@@ -49,10 +50,10 @@ function MainApp() {
       
       <main className="main-content">
         {currentTab === 'dashboard' && <Dashboard />}
-        {currentTab === 'quote_maker' && <QuotationMaker />}
+        {currentTab === 'quote_maker' && <QuotationMaker aiQuotationData={aiQuotationData} setAiQuotationData={setAiQuotationData} />}
         {currentTab === 'stock' && <StockManager />}
         {currentTab === 'database' && <DatabaseManager />}
-        {currentTab === 'ai' && <AIAssistant />}
+        {currentTab === 'ai' && <AIAssistant setCurrentTab={setCurrentTab} setAiQuotationData={setAiQuotationData} />}
         {currentTab === 'settings' && <Settings />}
       </main>
     </div>

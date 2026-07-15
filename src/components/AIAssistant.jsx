@@ -111,21 +111,21 @@ function QuotationPreview({ data, issuerInfo, onClose }) {
           padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-color)',
           background: 'linear-gradient(135deg, var(--accent-primary) 0%, #7c3aed 100%)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#fff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-primary)' }}>
             <FilePlus size={20} />
             <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>ใบเสนอราคา (ร่าง)</span>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button onClick={handlePrint} style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              backgroundColor: 'rgba(255,255,255,0.2)', color: '#fff',
+              backgroundColor: 'rgba(255,255,255,0.2)', color: 'var(--text-primary)',
               border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8,
               padding: '6px 14px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600
             }}>
               <Printer size={14} /> พิมพ์ / PDF
             </button>
             <button onClick={onClose} style={{
-              backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff',
+              backgroundColor: 'rgba(255,255,255,0.15)', color: 'var(--text-primary)',
               border: 'none', borderRadius: 8, padding: '6px 10px', cursor: 'pointer'
             }}>
               <X size={16} />
@@ -178,7 +178,7 @@ function QuotationPreview({ data, issuerInfo, onClose }) {
             <thead>
               <tr style={{ backgroundColor: 'var(--accent-primary)' }}>
                 {['#', 'รายละเอียด', 'จำนวน', 'ราคา/หน่วย', 'รวม'].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', color: '#fff', fontWeight: 700, fontSize: '0.85rem', textAlign: h === '#' || h === 'จำนวน' ? 'center' : 'left' }}>{h}</th>
+                  <th key={h} style={{ padding: '10px 14px', color: 'var(--text-primary)', fontWeight: 700, fontSize: '0.85rem', textAlign: h === '#' || h === 'จำนวน' ? 'center' : 'left' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -229,12 +229,11 @@ function QuotationPreview({ data, issuerInfo, onClose }) {
   );
 }
 
-export default function AIAssistant() {
+export default function AIAssistant({ setCurrentTab, setAiQuotationData }) {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
-  const [quotationData, setQuotationData] = useState(null);
-  const [issuerInfo, setIssuerInfo] = useState({});
+    const [issuerInfo, setIssuerInfo] = useState({});
   const [chatHistory, setChatHistory] = useState([
     {
       role: 'ai',
@@ -294,7 +293,8 @@ export default function AIAssistant() {
         setChatHistory(prev => [...prev, { role: 'ai', type: action, message: msg }]);
 
         if (action === 'quotation' && data.data) {
-          setQuotationData(data.data);
+          if (setAiQuotationData) setAiQuotationData(data.data);
+          if (setCurrentTab) setCurrentTab('quote_maker');
         }
       } else {
         const errText = await res.text();
@@ -356,59 +356,7 @@ export default function AIAssistant() {
         .chat-input:focus { outline: none; box-shadow: 0 0 0 3px rgba(79,70,229,0.15); }
       `}</style>
 
-      {/* Header */}
-      <div style={{
-        padding: '1rem 1.5rem',
-        background: 'linear-gradient(135deg, var(--accent-primary) 0%, #7c3aed 100%)',
-        borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 44, height: 44, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <Sparkles size={22} color="#fff" />
-          </div>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#fff' }}>AI Assistant</h1>
-            <p style={{ margin: 0, fontSize: '0.78rem', color: 'rgba(255,255,255,0.75)' }}>
-              ออกใบเสนอราคา • จัดการลูกค้า • จัดการสต็อก
-            </p>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#4ade80', boxShadow: '0 0 8px #4ade80' }} />
-          <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>Online</span>
-        </div>
-      </div>
 
-      {/* Capability chips */}
-      <div style={{
-        display: 'flex', gap: 8, padding: '0.75rem 1.5rem',
-        backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)',
-        flexWrap: 'wrap'
-      }}>
-        {[
-          { icon: <FilePlus size={12}/>, label: 'ใบเสนอราคา', color: '#4f46e5' },
-          { icon: <UserPlus size={12}/>, label: 'เพิ่มลูกค้า', color: '#16a34a' },
-          { icon: <Pencil size={12}/>, label: 'แก้ไขข้อมูล', color: '#d97706' },
-          { icon: <Trash2 size={12}/>, label: 'ลบข้อมูล', color: '#dc2626' },
-          { icon: <Package size={12}/>, label: 'จัดการสต็อก', color: '#0891b2' },
-          { icon: <Layers size={12}/>, label: 'จัดการพนักงาน', color: '#7c3aed' },
-        ].map(cap => (
-          <span key={cap.label} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
-            fontSize: '0.72rem', fontWeight: 600, padding: '3px 10px',
-            borderRadius: 999, color: cap.color,
-            backgroundColor: cap.color + '18',
-            border: `1px solid ${cap.color}30`
-          }}>
-            {cap.icon} {cap.label}
-          </span>
-        ))}
-      </div>
 
       {/* Chat Messages */}
       <div style={{
@@ -446,35 +394,17 @@ export default function AIAssistant() {
                 borderRadius: 16,
                 borderTopRightRadius: chat.role === 'user' ? 4 : 16,
                 borderTopLeftRadius: chat.role === 'ai' ? 4 : 16,
-                backgroundColor: chat.role === 'user'
-                  ? 'linear-gradient(135deg, #4f46e5, #7c3aed)'
-                  : 'var(--bg-secondary)',
-                background: chat.role === 'user'
-                  ? 'linear-gradient(135deg, #4f46e5, #7c3aed)'
-                  : 'var(--bg-secondary)',
-                color: chat.role === 'user' ? '#fff' : 'var(--text-primary)',
+                backgroundColor: chat.role === 'user' ? 'var(--accent-primary)' : 'var(--bg-secondary)',
+                color: chat.role === 'user' ? 'var(--bg-primary)' : 'var(--text-primary)',
                 fontSize: '0.9rem',
                 lineHeight: 1.7,
-                boxShadow: chat.role === 'user'
-                  ? '0 4px 16px rgba(79,70,229,0.3)'
-                  : '0 2px 8px rgba(0,0,0,0.06)',
+                boxShadow: chat.role === 'user' ? 'var(--shadow-md)' : 'var(--shadow-sm)',
                 border: chat.role === 'ai' ? '1px solid var(--border-color)' : 'none',
                 whiteSpace: 'pre-line'
               }}>
                 {chat.message}
               </div>
-              {/* Show quotation button */}
-              {chat.role === 'ai' && chat.type === 'quotation' && quotationData && (
-                <button onClick={() => setQuotationData(quotationData)} style={{
-                  marginTop: 8, display: 'flex', alignItems: 'center', gap: 6,
-                  fontSize: '0.82rem', fontWeight: 600, padding: '6px 14px',
-                  borderRadius: 8, cursor: 'pointer',
-                  backgroundColor: '#4f46e5', color: '#fff', border: 'none',
-                  boxShadow: '0 4px 12px rgba(79,70,229,0.3)'
-                }}>
-                  <FilePlus size={14}/> ดูใบเสนอราคา
-                </button>
-              )}
+
             </div>
           </div>
         ))}
@@ -484,8 +414,8 @@ export default function AIAssistant() {
           <div className="msg-bubble" style={{ display: 'flex', gap: '0.75rem', alignSelf: 'flex-start', maxWidth: '78%' }}>
             <div style={{
               width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-              background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff'
+              background: 'var(--bg-secondary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)'
             }}>
               <Bot size={16}/>
             </div>
@@ -518,7 +448,7 @@ export default function AIAssistant() {
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {SUGGESTIONS.map((s, i) => (
-              <button key={i} className="suggestion-chip" onClick={() => sendMessage(s.text)} style={{
+              <button key={i} className="suggestion-chip" onClick={() => setPrompt(s.text)} style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 fontSize: '0.78rem', padding: '5px 12px', borderRadius: 999,
                 backgroundColor: 'var(--bg-primary)', color: 'var(--text-secondary)',
@@ -579,14 +509,7 @@ export default function AIAssistant() {
         </form>
       </div>
 
-      {/* Quotation Modal */}
-      {quotationData && (
-        <QuotationPreview
-          data={quotationData}
-          issuerInfo={issuerInfo}
-          onClose={() => setQuotationData(null)}
-        />
-      )}
+
     </div>
   );
 }
