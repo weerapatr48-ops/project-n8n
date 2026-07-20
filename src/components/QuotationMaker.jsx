@@ -51,6 +51,8 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [customersLoaded, setCustomersLoaded] = useState(false);
+  const [employees, setEmployees] = useState([]);
+  const [employeesLoaded, setEmployeesLoaded] = useState(false);
   const [settings, setSettings] = useState({});
   const [aiPrompt, setAiPrompt] = useState('');
   
@@ -58,6 +60,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
     quotation_no: `QT-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(Math.random()*1000).toString().padStart(3,'0')}`,
     date: new Date().toISOString().slice(0,10),
     customer: { name: '', taxId: '', address: '', phone: '' },
+    employee: { name: auth?.user?.name || '' },
     items: [
       { id: 1, description: '', quantity: 1, unit: 'ชิ้น', unit_price: 0, total: 0 }
     ],
@@ -71,6 +74,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
 
   useEffect(() => {
     fetchCustomers();
+    fetchEmployees();
     fetchSettings();
   }, []);
 
@@ -79,7 +83,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
   }, [quoteData.items]);
 
   useEffect(() => {
-    if (aiQuotationData && customersLoaded) {
+    if (aiQuotationData && customersLoaded && employeesLoaded) {
       setQuoteData(prev => {
         let newData = { ...prev };
         
@@ -99,13 +103,24 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
           providedPhone = rawAiCust.phone || providedPhone;
         }
 
-        const cleanStr = (s) => (s || '').toLowerCase().replace(/[^a-z0-9ก-๙]/g, '');
+        const cleanStr = (s) => {
+          let str = (s || '').toLowerCase();
+          str = str.replace(/บริษัท|บ\.|บมจ\.?|บจก\.?|จำกัด|หจก\.?|co\.,?\s*ltd\.?|ltd\.?|company|limited|partnership|head office/g, '');
+          return str.replace(/[^a-z0-9ก-๙]/g, '');
+        };
         const targetClean = cleanStr(targetName);
         
         if (targetClean) {
           let cust = customers.find(c => cleanStr(c['ชื่อลูกค้า/ผู้ขาย']) === targetClean);
           if (!cust) {
             cust = customers.find(c => cleanStr(c['ชื่อลูกค้า/ผู้ขาย']).includes(targetClean) || targetClean.includes(cleanStr(c['ชื่อลูกค้า/ผู้ขาย'])));
+          }
+          if (!cust) {
+            // Additional fallback checking "ชื่อบริษัท (เพิ่มเติม)"
+            cust = customers.find(c => {
+              const extra = cleanStr(c['ชื่อบริษัท (เพิ่มเติม)']);
+              return extra && (extra === targetClean || extra.includes(targetClean) || targetClean.includes(extra));
+            });
           }
           
           if (cust) {
@@ -115,6 +130,18 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
               address: cust['ที่อยู่ 1'] || '',
               phone: cust['โทรศัพท์'] || ''
             };
+            
+            // Auto-select salesperson based on รหัส PIC
+            if (employeesLoaded && employees.length > 0) {
+              const picCode = (cust['รหัส PIC'] || cust['รหัสPIC'] || cust['PIC'] || '').trim();
+              if (picCode) {
+                const emp = employees.find(e => (e['รหัสpic'] || e['รหัสPIC'] || e['PIC'] || '').trim() === picCode);
+                if (emp) {
+                  const empName = emp['ชื่อpic'] || emp['ชื่อพนักงาน'] || emp['ชื่อ'] || emp['name'] || emp['ชื่อ-นามสกุล'];
+                  if (empName) newData.employee = { ...newData.employee, name: empName };
+                }
+              }
+            }
           } else {
             newData.customer = { 
               name: targetName,
@@ -149,7 +176,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
         setAiQuotationData(null);
       }
     }
-  }, [aiQuotationData, customersLoaded, customers, setAiQuotationData]);
+  }, [aiQuotationData, customersLoaded, employeesLoaded, customers, employees, setAiQuotationData]);
 
   const fetchCustomers = async () => {
     try {
@@ -161,6 +188,19 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
       console.log('Failed to fetch customers');
     } finally {
       setCustomersLoaded(true);
+    }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const s = getSettings();
+      const res = await fetch(`${s.n8nUrl || ''}/webhook/db-read?sheet=empolyee&t=${Date.now()}`);
+      const data = await res.json();
+      if (Array.isArray(data)) setEmployees(data);
+    } catch (err) {
+      console.log('Failed to fetch employees');
+    } finally {
+      setEmployeesLoaded(true);
     }
   };
 
@@ -210,18 +250,51 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
     }
     const cust = customers.find(c => c['ชื่อลูกค้า/ผู้ขาย'] === name);
     if (cust) {
-      setQuoteData(prev => ({
-        ...prev,
-        customer: {
-          name: cust['ชื่อลูกค้า/ผู้ขาย'],
-          taxId: cust['เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย'] || '',
-          address: cust['ที่อยู่ 1'] || '',
-          phone: cust['โทรศัพท์'] || ''
+      setQuoteData(prev => {
+        let newData = {
+          ...prev,
+          customer: {
+            name: cust['ชื่อลูกค้า/ผู้ขาย'],
+            taxId: cust['เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย'] || '',
+            address: cust['ที่อยู่ 1'] || '',
+            phone: cust['โทรศัพท์'] || ''
+          }
+        };
+
+        if (employeesLoaded && employees.length > 0) {
+          const picCode = (cust['รหัส PIC'] || cust['รหัสPIC'] || cust['PIC'] || '').trim();
+          if (picCode) {
+            const emp = employees.find(e => (e['รหัสpic'] || e['รหัสPIC'] || e['PIC'] || '').trim() === picCode);
+            if (emp) {
+              const empName = emp['ชื่อpic'] || emp['ชื่อพนักงาน'] || emp['ชื่อ'] || emp['name'] || emp['ชื่อ-นามสกุล'];
+              if (empName) newData.employee = { ...newData.employee, name: empName };
+            }
+          }
         }
-      }));
+        return newData;
+      });
     } else {
       setQuoteData(prev => ({ ...prev, customer: { ...prev.customer, name } }));
     }
+  };
+
+  const handleEmployeeSelect = (e) => {
+    const name = e.target.value;
+    setQuoteData(prev => ({ ...prev, employee: { ...prev.employee, name } }));
+  };
+
+  const handlePrint = () => {
+    if (!quoteData.employee?.name) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'กรุณาเลือกพนักงานขาย',
+        text: 'โปรดเลือกพนักงานขายจากฐานข้อมูลก่อนทำการพิมพ์ใบเสนอราคา',
+        confirmButtonColor: 'var(--accent-primary)',
+        confirmButtonText: 'ตกลง'
+      });
+      return;
+    }
+    window.print();
   };
 
   const updateItem = (index, field, value) => {
@@ -387,6 +460,27 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
           </div>
 
           <div style={styles.formSection}>
+            <h3 style={styles.sectionTitle}>ข้อมูลพนักงานขาย</h3>
+            <div className="input-group">
+              <label className="input-label">พนักงานขาย</label>
+              <select className="input-field" style={{ width: '100%' }} value={quoteData.employee?.name || ''} onChange={handleEmployeeSelect}>
+                <option value="">-- เลือกจากฐานข้อมูล --</option>
+                {quoteData.employee?.name && !employees.find(e => (e['ชื่อpic'] || e['ชื่อพนักงาน'] || e['ชื่อ'] || e['name'] || e['ชื่อ-นามสกุล']) === quoteData.employee.name) && (
+                  <option value={quoteData.employee.name}>{quoteData.employee.name} (ค่าเริ่มต้น)</option>
+                )}
+                {employees.map((e, i) => {
+                  const empName = e['ชื่อpic'] || e['ชื่อพนักงาน'] || e['ชื่อ'] || e['name'] || e['ชื่อ-นามสกุล'] || 'ไม่ระบุชื่อ';
+                  return (
+                    <option key={i} value={empName}>
+                      {empName}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          </div>
+
+          <div style={styles.formSection}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h3 style={styles.sectionTitle}>รายการสินค้า</h3>
               <button onClick={addItem} style={styles.btnSecondary}><Plus size={16}/> เพิ่มรายการ</button>
@@ -407,7 +501,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-            <button className="btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => window.print()}>
+            <button className="btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={handlePrint}>
               <Printer size={18} /> พิมพ์ / PDF
             </button>
           </div>
@@ -445,7 +539,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
               <div style={{ width: '35%', border: '1px solid #ccc', padding: '1rem', borderRadius: '4px' }}>
                 <p><strong>เลขที่:</strong> {quoteData.quotation_no}</p>
                 <p><strong>วันที่:</strong> {quoteData.date}</p>
-                <p><strong>พนักงานขาย:</strong> {auth?.user?.name}</p>
+                <p><strong>พนักงานขาย:</strong> {quoteData.employee?.name || ''}</p>
               </div>
             </div>
 
