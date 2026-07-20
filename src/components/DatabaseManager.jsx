@@ -166,6 +166,16 @@ export default function DatabaseManager() {
             cols.forEach(c => {
                newRow[c] = row[c] === null || row[c] === undefined ? '' : String(row[c]);
             });
+            
+            // Fix AI Assistant mapping error for Customer Type
+            if (config.id === 'customer') {
+              const typeVal = newRow['Type'] || newRow['type'] || '';
+              const groupCol = 'ชื่อกลุ่มระดับลูกค้า/ผู้ขาย';
+              if (!newRow[groupCol] && ['credit', 'vender', 'vendor'].includes(typeVal.toLowerCase())) {
+                newRow[groupCol] = typeVal.toLowerCase() === 'credit' ? 'Credit' : 'Vender';
+              }
+            }
+            
             return newRow;
           });
           
@@ -446,17 +456,21 @@ export default function DatabaseManager() {
                       {columns.map(col => (
                         <td key={col}>
                           {isEditing ? (
-                            col === 'ชื่อกลุ่มระดับลูกค้า/ผู้ขาย' || col.toLowerCase().includes('ประเภท') ? (
+                            activeDb === 'customer' && (col === 'ชื่อกลุ่มระดับลูกค้า/ผู้ขาย' || col.toLowerCase().includes('ประเภท')) ? (
                               <select 
                                 className="minimal-input" 
-                                value={editForm[col] !== undefined ? editForm[col] : ''} 
+                                value={
+                                  ['credit', 'vender', 'vendor'].includes((editForm[col] || '').toString().toLowerCase())
+                                    ? ((editForm[col] || '').toString().toLowerCase() === 'credit' ? 'Credit' : 'Vender')
+                                    : (editForm[col] || '')
+                                } 
                                 onChange={(e) => handleEditChange(col, e.target.value)}
                               >
                                 <option value="">-- เลือก --</option>
                                 <option value="Credit">Credit</option>
                                 <option value="Vender">Vender</option>
                               </select>
-                            ) : col.toLowerCase().replace(/\s/g, '') === 'รหัสpic' || col.toLowerCase().replace(/\s/g, '') === 'pic' ? (
+                            ) : activeDb !== 'product' && (col.toLowerCase().replace(/\s/g, '') === 'รหัสpic' || col.toLowerCase().replace(/\s/g, '') === 'pic') ? (
                               <select 
                                 className="minimal-input" 
                                 value={editForm[col] !== undefined ? editForm[col] : ''} 
@@ -478,11 +492,11 @@ export default function DatabaseManager() {
                               <input 
                                 type="text" 
                                 className="minimal-input" 
-                                value={col === idKey && editForm.isNew ? '' : (editForm[col] !== undefined ? editForm[col] : '')} 
+                                value={col === idKey && editForm.isNew && activeDb === 'customer' ? '' : (editForm[col] !== undefined ? editForm[col] : '')} 
                                 onChange={(e) => handleEditChange(col, e.target.value)} 
-                                placeholder={col === idKey && editForm.isNew ? '(สร้างอัตโนมัติตอนบันทึก)' : col}
-                                disabled={col === idKey}
-                                style={col === idKey ? { backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-muted)', cursor: 'not-allowed' } : {}}
+                                placeholder={col === idKey && editForm.isNew && activeDb === 'customer' ? '(สร้างอัตโนมัติตอนบันทึก)' : col}
+                                disabled={col === idKey && activeDb === 'customer'}
+                                style={col === idKey && activeDb === 'customer' ? { backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-muted)', cursor: 'not-allowed' } : {}}
                               />
                             )
                           ) : (

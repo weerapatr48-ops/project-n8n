@@ -542,7 +542,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=คุณคือ AI Assistant ประจำระบบจัดการธุรกิจชื่อ SmartQuote\n\nคุณทำได้ทุกอย่างต่อไปนี้:\n1. ออกใบเสนอราคา (สร้าง/แก้ไขรายการสินค้า)\n2. จัดการฐานข้อมูลลูกค้า (เพิ่ม/ลบ/แก้ไข)\n3. จัดการฐานข้อมูลพนักงาน (เพิ่ม/ลบ/แก้ไข)\n4. จัดการสต็อกสินค้า (เพิ่ม/ตัด)\n5. ตอบคำถามทั่วไป\n\nกฎสำคัญ: ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่นนอก JSON block\n\nSchema ที่ต้องใช้:\n`json\n{\n  \"action\": \"quotation | database | stock | reply\",\n  \"message\": \"ข้อความสั้นๆ บอกผู้ใช้ว่าคุณทำอะไรไป\",\n  \"data\": {\n    // --- ถ้า action = quotation ---\n    \"customerInfo\": {\n      \"name\": \"ชื่อลูกค้า\",\n      \"taxId\": \"เลขภาษี (ถ้ามี)\",\n      \"address\": \"ที่อยู่ (ถ้ามี)\",\n      \"phone\": \"เบอร์โทร (ถ้ามี)\"\n    },\n    \"items\": [\n      { \"description\": \"ชื่อสินค้า/บริการ\", \"quantity\": 1, \"price\": 1000 }\n    ],\n\n    // --- ถ้า action = database ---\n    \"table\": \"customers | employees\",\n    \"operation\": \"add | update | delete\",\n    \"payload\": {\n      \"id\": \"รหัส (ถ้ามี ระบุเฉพาะเมื่อผู้ใช้บอกรหัสมาตรงๆ ห้ามเดารหัสเองเด็ดขาด)\",\n      \"name\": \"ชื่อ (ถ้าสั่งลบหรือแก้ไข ให้ใส่ชื่อที่ผู้ใช้ระบุมาตรงๆ)\",\n      \"phone\": \"เบอร์โทร\",\n      \"email\": \"อีเมล\",\n      \"address\": \"ที่อยู่\",\n      \"taxId\": \"เลขภาษี\",\n      \"type\": \"Customer | Vendor\",\n      \"remark\": \"หมายเหตุ\"\n    },\n\n    // --- ถ้า action = stock ---\n    \"operation\": \"add | deduct\",\n    \"productName\": \"ชื่อสินค้า\",\n    \"amount\": 1,\n    \"unit\": \"หน่วย (ชิ้น/กล่อง/ชุด)\",\n    \"remark\": \"หมายเหตุ\"\n  }\n}\n`\n\nตัวอย่างการตีความ:\n- \"เพิ่มลูกค้าชื่อ สมชาย เบอร์ 081-xxx\" → action=\"database\", operation=\"add\", payload={\"name\":\"สมชาย\", \"phone\":\"081-xxx\"}\n- \"ลบลูกค้าชื่อ บริษัท A\" → action=\"database\", operation=\"delete\", payload={\"name\":\"บริษัท A\"}\n- \"แก้ไขชื่อพนักงาน สมหญิง เป็น สมศรี\" → action=\"database\", operation=\"update\", payload={\"name\":\"สมศรี\"}\n- \"ตัดสต็อก iPhone 15 จำนวน 5 เครื่อง\" → action=\"stock\", operation=\"deduct\", productName=\"iPhone 15\", amount=5\n- \"สร้างใบเสนอราคา\" → action=\"quotation\"\n\nคำสั่งจากผู้ใช้: {{ $json.body.prompt }}"
+        "text": "=คุณคือ AI Assistant ประจำระบบจัดการธุรกิจชื่อ SmartQuote\n\nคุณทำได้ทุกอย่างต่อไปนี้:\n1. ออกใบเสนอราคา (สร้าง/แก้ไขรายการสินค้า)\n2. จัดการฐานข้อมูลลูกค้า (เพิ่ม/ลบ/แก้ไข)\n3. จัดการฐานข้อมูลพนักงาน (เพิ่ม/ลบ/แก้ไข)\n4. จัดการสต็อกสินค้า (เพิ่ม/ตัด)\n5. ตอบคำถามทั่วไป\n\nกฎสำคัญ: ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่นนอก JSON block\n\nSchema ที่ต้องใช้:\n`json\n{\n  \"action\": \"quotation | database | stock | reply\",\n  \"message\": \"ข้อความสั้นๆ บอกผู้ใช้ว่าคุณทำอะไรไป\",\n  \"data\": {\n    // --- ถ้า action = quotation ---\n    \"customerInfo\": {\n      \"name\": \"ชื่อลูกค้า\",\n      \"taxId\": \"เลขภาษี (ถ้ามี)\",\n      \"address\": \"ที่อยู่ (ถ้ามี)\",\n      \"phone\": \"เบอร์โทร (ถ้ามี)\"\n    },\n    \"items\": [\n      { \"description\": \"ชื่อสินค้า/บริการ\", \"quantity\": 1, \"price\": 1000 }\n    ],\n\n    // --- ถ้า action = database ---\n    \"table\": \"customers | employees\",\n    \"operation\": \"add | update | delete\",\n    \"payload\": {\n      \"id\": \"รหัส (ถ้ามี ระบุเฉพาะเมื่อผู้ใช้บอกรหัสมาตรงๆ ห้ามเดารหัสเองเด็ดขาด)\",\n      \"name\": \"ชื่อ (ถ้าสั่งลบหรือแก้ไข ให้ใส่ชื่อที่ผู้ใช้ระบุมาตรงๆ)\",\n      \"phone\": \"เบอร์โทร\",\n      \"email\": \"อีเมล\",\n      \"address\": \"ที่อยู่\",\n      \"taxId\": \"เลขภาษี\",\n      \"type\": \"ต้องตอบแค่ 'Credit' หรือ 'Vender' เท่านั้น ห้ามตอบ Customer และห้ามนำคำว่า Credit ไปใส่ใน remark\",\n      \"remark\": \"หมายเหตุ\"\n    },\n\n    // --- ถ้า action = stock ---\n    \"operation\": \"add | deduct\",\n    \"productName\": \"ชื่อสินค้า\",\n    \"amount\": 1,\n    \"unit\": \"หน่วย (ชิ้น/กล่อง/ชุด)\",\n    \"remark\": \"หมายเหตุ\"\n  }\n}\n`\n\nตัวอย่างการตีความ:\n- \"เพิ่มลูกค้าชื่อ สมชาย เบอร์ 081-xxx\" → action=\"database\", operation=\"add\", payload={\"name\":\"สมชาย\", \"phone\":\"081-xxx\"}\n- \"ลบลูกค้าชื่อ บริษัท A\" → action=\"database\", operation=\"delete\", payload={\"name\":\"บริษัท A\"}\n- \"แก้ไขชื่อพนักงาน สมหญิง เป็น สมศรี\" → action=\"database\", operation=\"update\", payload={\"name\":\"สมศรี\"}\n- \"ตัดสต็อก iPhone 15 จำนวน 5 เครื่อง\" → action=\"stock\", operation=\"deduct\", productName=\"iPhone 15\", amount=5\n- \"สร้างใบเสนอราคา\" → action=\"quotation\"\n\nคำสั่งจากผู้ใช้: {{ $json.body.prompt }}"
       },
       "id": "1f091d8b-0332-40e5-90c0-b54107451e2a",
       "name": "Basic LLM Chain (Gemini)1",
@@ -691,7 +691,7 @@
             "ที่อยู่ 1": "={{ $json.data.payload.address }}",
             "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย": "={{ $json.data.payload.taxId }}",
             "หมายเหตุ": "={{ $json.data.payload.remark }}",
-            "Type": "={{ $json.data.payload.type }}"
+            "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย": "={{ $json.data.payload['ชื่อกลุ่มระดับลูกค้า/ผู้ขาย'] || $json.data.payload.type || $json.data.payload.Type }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -984,7 +984,7 @@
             "ที่อยู่ 1": "={{ $json.data.payload.address }}",
             "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย": "={{ $json.data.payload.taxId }}",
             "หมายเหตุ": "={{ $json.data.payload.remark }}",
-            "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย": "={{ $json.data.payload.type }}"
+            "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย": "={{ $json.data.payload['ชื่อกลุ่มระดับลูกค้า/ผู้ขาย'] || $json.data.payload.type || $json.data.payload.Type }}"
           },
           "matchingColumns": [
             "ชื่อลูกค้า/ผู้ขาย"
@@ -1789,7 +1789,7 @@
             "รหัสลูกค้า/ผู้ขาย": "={{ $json.body.data.id }}",
             "ชื่อลูกค้า/ผู้ขาย": "={{ $json.body.data.name }}",
             "เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย": "={{ $json.body.data.taxId }}",
-            "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย": "={{ $json.body.data.type }}",
+            "ชื่อกลุ่มระดับลูกค้า/ผู้ขาย": "={{ $json.body.data['ชื่อกลุ่มระดับลูกค้า/ผู้ขาย'] || $json.body.data.type || $json.body.data.Type }}",
             "ผู้ติดต่อ": "={{ $json.body.data.contact }}",
             "โทรศัพท์": "={{ $json.body.data.phone }}",
             "อีเมล": "={{ $json.body.data.email }}",
