@@ -286,7 +286,11 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
     }
   };
 
-  const formatMoney = (amount) => new Intl.NumberFormat('th-TH', { style: 'decimal', minimumFractionDigits: 2 }).format(amount);
+  const formatMoney = (amount) => {
+    const num = Number(amount) || 0;
+    const rounded = Math.round((num + Number.EPSILON) * 100) / 100;
+    return new Intl.NumberFormat('th-TH', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(rounded);
+  };
 
   const saveQuotation = async () => {
     try {

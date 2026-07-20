@@ -112,7 +112,7 @@ export default function QuotationHistory() {
                   <td style={{ padding: '1rem' }}>{row.date || row['วันที่']}</td>
                   <td style={{ padding: '1rem' }}>{row.customer || row['ลูกค้า']}</td>
                   <td style={{ padding: '1rem', color: 'var(--accent-primary)', fontWeight: 600 }}>
-                    {new Intl.NumberFormat('th-TH', { style: 'decimal', minimumFractionDigits: 2 }).format(row.total || row['ยอดรวมสุทธิ'] || 0)}
+                    {new Intl.NumberFormat('th-TH', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(row.total || row['ยอดรวมสุทธิ'] || 0)}
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <span style={{ 

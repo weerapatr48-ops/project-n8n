@@ -105,7 +105,11 @@ function QuotationPreview({ data, issuerInfo, onClose }) {
   const customer = data?.customerInfo || {};
   const today = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
   const total = items.reduce((s, i) => s + Number(i.quantity||0) * Number(i.price||0), 0);
-  const fmt = (n) => new Intl.NumberFormat('th-TH', { minimumFractionDigits: 2 }).format(n);
+  const fmt = (n) => {
+    const num = Number(n) || 0;
+    const rounded = Math.round((num + Number.EPSILON) * 100) / 100;
+    return new Intl.NumberFormat('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(rounded);
+  };
   const vat = total * 0.07;
 
   const handlePrint = () => {
