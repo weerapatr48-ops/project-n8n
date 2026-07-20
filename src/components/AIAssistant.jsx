@@ -12,6 +12,49 @@ const getN8nUrl = () => {
   } catch { return ''; }
 };
 
+const THBText = (number) => {
+  if (!number || isNaN(number) || number === 0) return "ศูนย์บาทถ้วน";
+  const numStr = Number(number).toFixed(2);
+  const [bahtStr, satangStr] = numStr.split('.');
+  
+  const readNumber = (str) => {
+    const txtNum = ["ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า"];
+    const txtUnit = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน"];
+    let res = "";
+    let len = str.length;
+    for (let i = 0; i < len; i++) {
+      let digit = parseInt(str[i]);
+      let pos = len - i - 1;
+      if (digit !== 0) {
+        if (digit === 1 && pos === 0 && len > 1) res += "เอ็ด";
+        else if (digit === 2 && pos === 1) res += "ยี่";
+        else if (digit === 1 && pos === 1) res += "";
+        else res += txtNum[digit];
+        res += txtUnit[pos];
+      }
+    }
+    return res;
+  };
+
+  let bStr = bahtStr;
+  let parts = [];
+  while(bStr.length > 6) {
+    parts.unshift(bStr.slice(-6));
+    bStr = bStr.slice(0, -6);
+  }
+  parts.unshift(bStr);
+  
+  let bahtRes = parts.map(p => readNumber(p)).filter(p => p !== "").join("ล้าน");
+  if (bahtRes) bahtRes += "บาท";
+  
+  let satangRes = "";
+  if (parseInt(satangStr) > 0) satangRes += readNumber(satangStr) + "สตางค์";
+  else satangRes += "ถ้วน";
+  
+  return bahtRes + satangRes;
+};
+
+
 const SUGGESTIONS = [
   { icon: <FilePlus size={14} />, text: 'ออกใบเสนอราคาคอมพิวเตอร์ 2 เครื่อง ราคา 25,000 บาท' },
   { icon: <UserPlus size={14} />, text: 'เพิ่มลูกค้าใหม่ชื่อ บริษัท เทสต์ จำกัด เบอร์ 081-234-5678' },
@@ -197,7 +240,7 @@ function QuotationPreview({ data, issuerInfo, onClose }) {
 
           {/* Totals */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '2rem' }}>
-            <div style={{ width: 300 }}>
+            <div style={{ width: 400 }}>
               {[
                 ['ราคาก่อนภาษี', fmt(total), false],
                 ['ภาษีมูลค่าเพิ่ม (7%)', fmt(vat), false],
@@ -205,12 +248,16 @@ function QuotationPreview({ data, issuerInfo, onClose }) {
               ].map(([label, val, isBold]) => (
                 <div key={label} style={{
                   display: 'flex', justifyContent: 'space-between',
-                  padding: '6px 0', borderBottom: isBold ? 'none' : '1px solid var(--border-color)'
+                  padding: '8px 0', borderBottom: isBold ? 'none' : '1px solid var(--border-color)',
+                  borderTop: isBold ? '2px solid var(--text-primary)' : 'none'
                 }}>
                   <span style={{ color: isBold ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: isBold ? 800 : 400 }}>{label}</span>
                   <span style={{ fontWeight: isBold ? 800 : 600, fontSize: isBold ? '1.2rem' : '1rem', color: isBold ? 'var(--accent-primary)' : 'var(--text-primary)' }}>{val}</span>
                 </div>
               ))}
+              <div style={{ textAlign: 'center', paddingBottom: '0.75rem', fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-primary)', fontStyle: 'italic', borderBottom: '2px solid var(--text-primary)' }}>
+                ( {typeof THBText !== 'undefined' ? THBText(total + vat) : "ศูนย์บาทถ้วน"} )
+              </div>
             </div>
           </div>
 

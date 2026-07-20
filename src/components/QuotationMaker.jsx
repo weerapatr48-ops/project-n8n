@@ -3,6 +3,48 @@ import { useAuth } from '../context/AuthContext';
 import { FileText, Bot, Plus, Trash2, Printer, Save, Search, AlertTriangle } from 'lucide-react';
 import Swal from 'sweetalert2';
 
+const THBText = (number) => {
+  if (!number || isNaN(number) || number === 0) return "ศูนย์บาทถ้วน";
+  const numStr = Number(number).toFixed(2);
+  const [bahtStr, satangStr] = numStr.split('.');
+  
+  const readNumber = (str) => {
+    const txtNum = ["ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า"];
+    const txtUnit = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน"];
+    let res = "";
+    let len = str.length;
+    for (let i = 0; i < len; i++) {
+      let digit = parseInt(str[i]);
+      let pos = len - i - 1;
+      if (digit !== 0) {
+        if (digit === 1 && pos === 0 && len > 1) res += "เอ็ด";
+        else if (digit === 2 && pos === 1) res += "ยี่";
+        else if (digit === 1 && pos === 1) res += "";
+        else res += txtNum[digit];
+        res += txtUnit[pos];
+      }
+    }
+    return res;
+  };
+
+  let bStr = bahtStr;
+  let parts = [];
+  while(bStr.length > 6) {
+    parts.unshift(bStr.slice(-6));
+    bStr = bStr.slice(0, -6);
+  }
+  parts.unshift(bStr);
+  
+  let bahtRes = parts.map(p => readNumber(p)).filter(p => p !== "").join("ล้าน");
+  if (bahtRes) bahtRes += "บาท";
+  
+  let satangRes = "";
+  if (parseInt(satangStr) > 0) satangRes += readNumber(satangStr) + "สตางค์";
+  else satangRes += "ถ้วน";
+  
+  return bahtRes + satangRes;
+};
+
 export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) {
   const { auth, canAccess } = useAuth();
   const [mode, setMode] = useState('manual'); // 'ai' or 'manual'
@@ -431,10 +473,10 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
 
             {/* Totals */}
             <div className="print-totals-section" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
-              <div style={{ width: '60%' }}>
+              <div style={{ width: '50%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
                 <p><strong>หมายเหตุ:</strong> {quoteData.remark}</p>
               </div>
-              <div style={{ width: '35%' }}>
+              <div style={{ width: '48%' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <tbody>
                     <tr>
@@ -447,7 +489,12 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
                     </tr>
                     <tr>
                       <td style={{ padding: '0.25rem', fontWeight: 'bold' }}>ยอดเงินสุทธิ</td>
-                      <td style={{ padding: '0.25rem', textAlign: 'right', fontWeight: 'bold', borderTop: '2px solid #333', borderBottom: '2px solid #333' }}>{formatMoney(quoteData.total)}</td>
+                      <td style={{ padding: '0.25rem', textAlign: 'right', fontWeight: 'bold', borderTop: '2px solid #333' }}>{formatMoney(quoteData.total)}</td>
+                    </tr>
+                    <tr>
+                      <td colSpan="2" style={{ padding: '0.25rem', textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem', color: '#333', fontStyle: 'italic', borderBottom: '2px solid #333' }}>
+                        ( {THBText(quoteData.total)} )
+                      </td>
                     </tr>
                   </tbody>
                 </table>
