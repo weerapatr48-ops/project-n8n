@@ -467,7 +467,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-            <button className="btn-primary" style={{ flex: 1, justifyContent: 'center', backgroundColor: 'var(--accent-secondary)' }} onClick={handlePrint}>
+            <button className="btn-primary" style={{ flex: 1, justifyContent: 'center', backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} onClick={handlePrint}>
               <Printer size={18} /> พิมพ์ / PDF
             </button>
             <button 

@@ -449,3 +449,102 @@ option {
     page-break-inside: avoid;
   }
 }
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    padding: 0.5rem;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-top: 1px solid var(--border-color);
+    order: 2;
+    z-index: 50;
+    gap: 0.5rem;
+  }
+
+  .sidebar nav {
+    flex-direction: row !important;
+    gap: 0.5rem !important;
+  }
+
+  .sidebar-logo {
+    display: none !important;
+  }
+  
+  .sidebar nav > div:last-child {
+    flex-direction: row !important;
+    margin-top: 0 !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Hide user profile card on mobile */
+  .sidebar nav > div:last-child > div:first-child {
+    display: none !important;
+  }
+  
+  .nav-item span {
+    display: none !important;
+  }
+  
+  .nav-item {
+    justify-content: center !important;
+    padding: 0.75rem !important;
+    width: auto !important;
+  }
+  
+  /* Hide dark mode toggle switch on mobile, keeping just the icon */
+  .nav-item > div:nth-child(2) {
+    display: none !important;
+  }
+
+  .main-content {
+    order: 1;
+    padding: 1rem;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Fix dashboard grids injected via inline styles */
+  .dashboard-container > div:last-child {
+    grid-template-columns: 1fr !important;
+  }
+
+  .glass-card {
+    padding: 1.25rem;
+  }
+
+  .title-lg {
+    font-size: 1.5rem;
+  }
+  
+  /* Make inline flex columns in Login */
+  .gridRow {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .a4-preview {
+    width: 100%;
+    min-height: auto;
+    padding: 10mm;
+    overflow-x: auto;
+  }
+
+  /* Make tables scroll horizontally */
+  .data-table-container {
+    overflow-x: auto;
+  }
+  
+  /* Modal responsive */
+  div[style*="maxWidth: '400px'"] {
+    width: 95% !important;
+    padding: 1.5rem !important;
+  }
+}
