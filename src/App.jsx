@@ -6,9 +6,11 @@ import Settings from './components/Settings';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import QuotationMaker from './components/QuotationMaker';
+import QuotationHistory from './components/QuotationHistory';
 import StockManager from './components/StockManager';
+import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './context/AuthContext';
-
+import { DataProvider } from './context/DataContext';
 function MainApp() {
   const { auth, logout, loading } = useAuth();
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -51,6 +53,7 @@ function MainApp() {
       <main className="main-content">
         {currentTab === 'dashboard' && <Dashboard />}
         {currentTab === 'quote_maker' && <QuotationMaker aiQuotationData={aiQuotationData} setAiQuotationData={setAiQuotationData} />}
+        {currentTab === 'quote_history' && <QuotationHistory setCurrentTab={setCurrentTab} setAiQuotationData={setAiQuotationData} />}
         {currentTab === 'stock' && <StockManager />}
         {currentTab === 'database' && <DatabaseManager />}
         {currentTab === 'ai' && <AIAssistant setCurrentTab={setCurrentTab} setAiQuotationData={setAiQuotationData} />}
@@ -62,9 +65,13 @@ function MainApp() {
 
 function App() {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <DataProvider>
+          <MainApp />
+        </DataProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

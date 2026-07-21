@@ -365,3 +365,87 @@ option {
   color: var(--text-primary);
 }
 
+/* --- Quotation Maker Specific CSS --- */
+.btn-mode {
+  border: none; background: transparent; padding: 0.5rem 1rem; border-radius: var(--radius-full);
+  font-family: inherit; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+  display: flex; gap: 0.5rem; align-items: center; transition: all 0.2s;
+}
+.btn-mode.active { background: var(--bg-secondary); color: var(--accent-primary); box-shadow: var(--shadow-sm); }
+.a4-preview {
+  background: white; color: black; width: 210mm; min-height: 297mm;
+  padding: 20mm; margin: 0 auto; box-shadow: var(--shadow-lg);
+  font-family: 'Sarabun', 'Prompt', sans-serif;
+}
+.a4-preview table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.a4-preview table th,
+.a4-preview table td {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+.a4-preview table th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm 15mm 20mm 15mm;
+  }
+  html, body {
+    width: 210mm;
+    height: auto;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body * { visibility: hidden; }
+  .print-container, .print-container * { visibility: visible; }
+  .print-container {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .print-area {
+    position: relative !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    background: white !important;
+    color: black !important;
+  }
+  .no-print { display: none !important; }
+  
+  /* Table pagination support */
+  .print-area table {
+    page-break-inside: auto;
+  }
+  .print-area table thead {
+    display: table-header-group;
+  }
+  .print-area table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  
+  /* Signature section stays together and at bottom */
+  .print-signature-section {
+    page-break-inside: avoid;
+    margin-top: 3rem;
+  }
+
+  /* Totals section stays together */
+  .print-totals-section {
+    page-break-inside: avoid;
+  }
+}

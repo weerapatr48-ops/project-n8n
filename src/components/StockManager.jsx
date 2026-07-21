@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
 import { Package, Plus, Search, Activity, AlertTriangle, RefreshCw } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function StockManager() {
   const { canAccess } = useAuth();
+  const { products: rawProducts, isDataLoaded, refreshData } = useData();
   const [activeTab, setActiveTab] = useState('list'); // 'list' or 'log'
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
@@ -21,58 +23,26 @@ export default function StockManager() {
   const getSettings = () => JSON.parse(localStorage.getItem('appSettings') || '{}');
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const s = getSettings();
-
+    if (isDataLoaded && rawProducts) {
+      let rawData = [];
+      if (Array.isArray(rawProducts) && rawProducts.length > 0 && rawProducts[0]?.json) {
+        rawData = rawProducts.map(item => item.json);
+      } else if (Array.isArray(rawProducts)) {
+        rawData = rawProducts;
+      }
       
-      let res = await fetch(`${s.n8nUrl || ''}/webhook/db-read?sheet=product&t=${Date.now()}`);
-      if (!res.ok) {
-        res = await fetch(`${s.n8nUrl || ''}/webhook/db-read?sheet=stock&t=${Date.now()}`);
-      }
-
-      if (res.ok) {
-        const text = await res.text();
-        let result = [];
-        try {
-          if (text && text.trim()) result = JSON.parse(text);
-        } catch (e) {
-          console.warn('Response is not valid JSON:', text);
-        }
-        let rawData = [];
-        if (Array.isArray(result) && result[0]?.json) rawData = result.map(item => item.json);
-        else if (Array.isArray(result)) rawData = result;
-        else if (result && Array.isArray(result.data)) rawData = result.data;
-        else if (typeof result === 'object' && result !== null && !result.error) rawData = [result];
-        
-        if (rawData.length > 0) {
-          const mappedProducts = rawData.map(row => ({
-            'รหัส': row['รหัส'] || row['รหัสสินค้า'] || row['ProductID'] || row.id || '-',
-            'ชื่อ': row['ชื่อ'] || row['ชื่อสินค้า'] || row['ProductName'] || row.name || '-',
-            'หน่วย': row['หน่วย'] || row['Unit'] || row.unit || 'ชิ้น',
-            'คงเหลือ': row['คงเหลือ'] || row['จำนวน'] || row['ยอดคงเหลือ'] || row['Qty'] || row['Quantity'] || row['จำนวนคงเหลือ'] || 0,
-            'สถานะ': row['สถานะ'] || row['Status'] || row.status || 'Active'
-          })).filter(row => row['ชื่อ'] && row['ชื่อ'] !== '-');
-          
-          mappedProducts.sort((a, b) => String(a['รหัส'] || '').localeCompare(String(b['รหัส'] || ''), undefined, { numeric: true, sensitivity: 'base' }));
-          
-          setProducts(mappedProducts);
-          return;
-        }
-      }
-      throw new Error('No data returned');
-    } catch (err) {
-      console.log('Failed to fetch stock/product', err);
-      // Mock data for display
-      setProducts([]);
-    } finally {
-      setLoading(false);
+      const mappedProducts = rawData.map(row => ({
+        'รหัส': row['รหัส'] || row['รหัสสินค้า'] || row['ProductID'] || row.id || '-',
+        'ชื่อ': row['ชื่อ'] || row['ชื่อสินค้า'] || row['ProductName'] || row.name || '-',
+        'หน่วย': row['หน่วย'] || row['Unit'] || row.unit || 'ชิ้น',
+        'คงเหลือ': row['คงเหลือ'] || row['จำนวน'] || row['ยอดคงเหลือ'] || row['Qty'] || row['Quantity'] || row['จำนวนคงเหลือ'] || 0,
+        'สถานะ': row['สถานะ'] || row['Status'] || row.status || 'Active'
+      })).filter(row => row['ชื่อ'] && row['ชื่อ'] !== '-');
+      
+      mappedProducts.sort((a, b) => String(a['รหัส'] || '').localeCompare(String(b['รหัส'] || ''), undefined, { numeric: true, sensitivity: 'base' }));
+      setProducts(mappedProducts);
     }
-  };
+  }, [isDataLoaded, rawProducts]);
 
   const handleStockSubmit = async (e) => {
     e.preventDefault();
@@ -95,7 +65,7 @@ export default function StockManager() {
       await res.json();
       Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกสต็อกเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
       setStockForm({ ...stockForm, amount: 1, remark: '' });
-      fetchProducts(); // Refresh list
+      refreshData(); // Refresh global products data
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'เกิดข้อผิดพลาดในการบันทึกสต็อก' });
     } finally {
@@ -152,8 +122,8 @@ export default function StockManager() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <button className="btn-primary" onClick={fetchProducts} disabled={loading}>
-                  <RefreshCw size={16} className={loading ? 'pulse' : ''} /> รีเฟรช
+                <button className="btn-primary" onClick={refreshData} disabled={loading}>
+                  <RefreshCw size={16} className={loading ? 'pulse' : ''} /> อัปเดตข้อมูล
                 </button>
               </div>
 

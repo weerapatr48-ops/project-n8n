@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Database, Settings, FileText, Moon, Sun, Bot, Package, LogOut, FileSignature } from 'lucide-react';
+import { LayoutDashboard, Database, Settings, FileText, Moon, Sun, Bot, Package, LogOut, FileSignature, History } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, user, onLogout }) {
@@ -42,6 +42,16 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
           >
             <FileSignature size={20} />
             <span>ออกใบเสนอราคา</span>
+          </button>
+        )}
+
+        {canAccess('quote') && (
+          <button 
+            className={`nav-item ${currentTab === 'quote_history' ? 'active' : ''}`}
+            onClick={() => setCurrentTab('quote_history')}
+          >
+            <History size={20} />
+            <span>ประวัติใบเสนอราคา</span>
           </button>
         )}
 

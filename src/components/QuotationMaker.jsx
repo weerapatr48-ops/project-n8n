@@ -1,60 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
 import { FileText, Bot, Plus, Trash2, Printer, Save, Search, AlertTriangle } from 'lucide-react';
 import Swal from 'sweetalert2';
-
-const THBText = (number) => {
-  if (!number || isNaN(number) || number === 0) return "ศูนย์บาทถ้วน";
-  const numStr = Number(number).toFixed(2);
-  const [bahtStr, satangStr] = numStr.split('.');
-  
-  const readNumber = (str) => {
-    const txtNum = ["ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า"];
-    const txtUnit = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน"];
-    let res = "";
-    let len = str.length;
-    for (let i = 0; i < len; i++) {
-      let digit = parseInt(str[i]);
-      let pos = len - i - 1;
-      if (digit !== 0) {
-        if (digit === 1 && pos === 0 && len > 1) res += "เอ็ด";
-        else if (digit === 2 && pos === 1) res += "ยี่";
-        else if (digit === 1 && pos === 1) res += "";
-        else res += txtNum[digit];
-        res += txtUnit[pos];
-      }
-    }
-    return res;
-  };
-
-  let bStr = bahtStr;
-  let parts = [];
-  while(bStr.length > 6) {
-    parts.unshift(bStr.slice(-6));
-    bStr = bStr.slice(0, -6);
-  }
-  parts.unshift(bStr);
-  
-  let bahtRes = parts.map(p => readNumber(p)).filter(p => p !== "").join("ล้าน");
-  if (bahtRes) bahtRes += "บาท";
-  
-  let satangRes = "";
-  if (parseInt(satangStr) > 0) satangRes += readNumber(satangStr) + "สตางค์";
-  else satangRes += "ถ้วน";
-  
-  return bahtRes + satangRes;
-};
-
+import { THBText, formatMoney } from '../utils/formatters';
+import QuotationPrintPreview from './QuotationPrintPreview';
 export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) {
   const { auth, canAccess } = useAuth();
   const [mode, setMode] = useState('manual'); // 'ai' or 'manual'
   const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState([]);
-  const [customersLoaded, setCustomersLoaded] = useState(false);
-  const [employees, setEmployees] = useState([]);
-  const [employeesLoaded, setEmployeesLoaded] = useState(false);
-  const [settings, setSettings] = useState({});
+  const { customers, employees, products: rawProducts, settings, isDataLoaded } = useData();
   const [aiPrompt, setAiPrompt] = useState('');
+  
+  const productsList = React.useMemo(() => {
+    if (!rawProducts) return [];
+    let arr = [];
+    if (Array.isArray(rawProducts) && rawProducts.length > 0 && rawProducts[0]?.json) {
+      arr = rawProducts.map(item => item.json);
+    } else if (Array.isArray(rawProducts)) {
+      arr = rawProducts;
+    }
+    return arr.map(row => ({
+      name: row['ชื่อ'] || row['ชื่อสินค้า'] || row['ProductName'] || row.name || '-',
+      code: row['รหัส'] || row['รหัสสินค้า'] || row['ProductID'] || row.id || '-',
+      unit: row['หน่วย'] || row['Unit'] || row.unit || 'ชิ้น',
+      price: row['ราคาขาย'] || row['ราคา'] || row['Price'] || row['unit_price'] || 0
+    })).filter(p => p.name !== '-');
+  }, [rawProducts]);
   
   const [quoteData, setQuoteData] = useState({
     quotation_no: `QT-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(Math.random()*1000).toString().padStart(3,'0')}`,
@@ -73,19 +45,17 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
   const getSettings = () => JSON.parse(localStorage.getItem('appSettings') || '{}');
 
   useEffect(() => {
-    fetchCustomers();
-    fetchEmployees();
-    fetchSettings();
-  }, []);
-
-  useEffect(() => {
     calculateTotals();
   }, [quoteData.items]);
 
   useEffect(() => {
-    if (aiQuotationData && customersLoaded && employeesLoaded) {
+    if (aiQuotationData && isDataLoaded) {
       setQuoteData(prev => {
         let newData = { ...prev };
+        
+        if (aiQuotationData.quotation_no || aiQuotationData.id) {
+          newData.quotation_no = aiQuotationData.quotation_no || aiQuotationData.id;
+        }
         
         // Match customer from DB
         const rawAiCust = aiQuotationData.customerInfo || aiQuotationData.customer;
@@ -132,7 +102,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
             };
             
             // Auto-select salesperson based on รหัส PIC
-            if (employeesLoaded && employees.length > 0) {
+            if (isDataLoaded && employees.length > 0) {
               const picCode = (cust['รหัส PIC'] || cust['รหัสPIC'] || cust['PIC'] || '').trim();
               if (picCode) {
                 const emp = employees.find(e => (e['รหัสpic'] || e['รหัสPIC'] || e['PIC'] || '').trim() === picCode);
@@ -176,57 +146,9 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
         setAiQuotationData(null);
       }
     }
-  }, [aiQuotationData, customersLoaded, employeesLoaded, customers, employees, setAiQuotationData]);
+  }, [aiQuotationData, isDataLoaded, customers, employees, setAiQuotationData]);
 
-  const fetchCustomers = async () => {
-    try {
-      const s = getSettings();
-      const res = await fetch(`${s.n8nUrl || ''}/webhook/db-read?sheet=customer&t=${Date.now()}`);
-      const data = await res.json();
-      if (Array.isArray(data)) setCustomers(data);
-    } catch (err) {
-      console.log('Failed to fetch customers');
-    } finally {
-      setCustomersLoaded(true);
-    }
-  };
 
-  const fetchEmployees = async () => {
-    try {
-      const s = getSettings();
-      const res = await fetch(`${s.n8nUrl || ''}/webhook/db-read?sheet=empolyee&t=${Date.now()}`);
-      const data = await res.json();
-      if (Array.isArray(data)) setEmployees(data);
-    } catch (err) {
-      console.log('Failed to fetch employees');
-    } finally {
-      setEmployeesLoaded(true);
-    }
-  };
-
-  const fetchSettings = async () => {
-    try {
-      const localProfile = JSON.parse(localStorage.getItem('companyProfile') || '{}');
-      setSettings(prev => ({ ...prev, ...localProfile }));
-
-      const s = getSettings();
-      const res = await fetch(`${s.n8nUrl || ''}/webhook/settings?t=${Date.now()}`);
-      const result = await res.json();
-      const data = Array.isArray(result) && result[0]?.json ? result[0].json : (Array.isArray(result) ? result[0] : result);
-      
-      if (data) {
-        setSettings({
-          companyName: data['Company Name'] || data.companyName || localProfile.companyName || '',
-          companyTaxId: data['Tax ID'] || data.companyTaxId || localProfile.companyTaxId || '',
-          companyAddress: data['Address'] || data.companyAddress || localProfile.companyAddress || '',
-          companyPhone: data['Phone'] || data.companyPhone || localProfile.companyPhone || '',
-          companyLogo: data['Logo URL'] || data.companyLogo || localProfile.companyLogo || ''
-        });
-      }
-    } catch (err) {
-      console.log('Failed to fetch settings');
-    }
-  };
 
   const calculateTotals = () => {
     const subtotal = quoteData.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unit_price)), 0);
@@ -261,7 +183,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
           }
         };
 
-        if (employeesLoaded && employees.length > 0) {
+        if (isDataLoaded && employees.length > 0) {
           const picCode = (cust['รหัส PIC'] || cust['รหัสPIC'] || cust['PIC'] || '').trim();
           if (picCode) {
             const emp = employees.find(e => (e['รหัสpic'] || e['รหัสPIC'] || e['PIC'] || '').trim() === picCode);
@@ -359,28 +281,34 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
     }
   };
 
-  const formatMoney = (amount) => {
-    const num = Number(amount) || 0;
-    const rounded = Math.round((num + Number.EPSILON) * 100) / 100;
-    return new Intl.NumberFormat('th-TH', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(rounded);
-  };
 
   const saveQuotation = async () => {
     try {
       setLoading(true);
       const s = getSettings();
-      await fetch(`${s.n8nUrl || ''}/webhook/quotations`, {
+      
+      const newQuote = { 
+        ...quoteData, 
+        id: quoteData.quotation_no,
+        customerName: quoteData.customer?.name || '-',
+        totalAmount: quoteData.total || 0,
+        status: 'Pending',
+        created_by: auth?.user?.name,
+        saved_at: new Date().toISOString()
+      };
+      
+      const response = await fetch(`${s.n8nUrl || ''}/webhook/quotations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...quoteData,
-          created_by: auth?.user?.name
-        })
+        body: JSON.stringify(newQuote)
       });
-      Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกใบเสนอราคาเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
+      
+      if (!response.ok) throw new Error('Network error');
+      
+      Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกใบเสนอราคาไปยังส่วนกลางเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
     } catch (err) {
-      console.log('Error saving', err);
-      Swal.fire({ icon: 'success', title: 'สำเร็จ (Offline)', text: 'บันทึกสำเร็จ (Offline Mode)', timer: 1500, showConfirmButton: false });
+      console.log('Error saving to n8n', err);
+      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'ไม่สามารถบันทึกไปยังฐานข้อมูลส่วนกลางได้ (อาจต้องรอ n8n อัปเดตชีตใหม่)', timer: 3000, showConfirmButton: false });
     } finally {
       setLoading(false);
     }
@@ -492,10 +420,42 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
               <button onClick={addItem} style={styles.btnSecondary}><Plus size={16}/> เพิ่มรายการ</button>
             </div>
             
+            <div style={{ display: 'flex', gap: '0.5rem', padding: '0 0.5rem 0.5rem 0', fontWeight: 'bold', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
+              <div style={{ flex: 1 }}>ชื่อสินค้า</div>
+              <div style={{ width: '80px', textAlign: 'center' }}>จำนวน</div>
+              <div style={{ width: '80px', textAlign: 'center' }}>หน่วย</div>
+              <div style={{ width: '100px', textAlign: 'right' }}>ราคา/หน่วย</div>
+              <div style={{ width: '100px', textAlign: 'right' }}>รวมเงิน</div>
+              <div style={{ width: '34px' }}></div>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {quoteData.items.map((item, index) => (
                 <div key={item.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <input className="input-field" style={{ flex: 2 }} placeholder="ชื่อสินค้า" value={item.description} onChange={(e) => updateItem(index, 'description', e.target.value)} />
+                  <select 
+                    className="input-field" 
+                    style={{ flex: 1, width: '100%' }} 
+                    value={item.description} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      updateItem(index, 'description', val);
+                      const found = productsList.find(p => p.name === val);
+                      if (found) {
+                        updateItem(index, 'unit_price', found.price);
+                        updateItem(index, 'unit', found.unit);
+                      }
+                    }} 
+                  >
+                    <option value="">-- เลือกสินค้า --</option>
+                    {item.description && !productsList.find(p => p.name === item.description) && (
+                      <option value={item.description}>{item.description} (ระบุเอง)</option>
+                    )}
+                    {productsList.map((p, i) => (
+                      <option key={i} value={p.name}>
+                        [{p.code}] {p.name}
+                      </option>
+                    ))}
+                  </select>
                   <input className="input-field" style={{ width: '80px' }} type="number" placeholder="จำนวน" value={item.quantity} onChange={(e) => updateItem(index, 'quantity', e.target.value)} />
                   <input className="input-field" style={{ width: '80px' }} placeholder="หน่วย" value={item.unit} onChange={(e) => updateItem(index, 'unit', e.target.value)} />
                   <input className="input-field" style={{ width: '100px' }} type="number" placeholder="ราคา/หน่วย" value={item.unit_price} onChange={(e) => updateItem(index, 'unit_price', e.target.value)} />
@@ -507,227 +467,30 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-            <button className="btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={handlePrint}>
+            <button className="btn-primary" style={{ flex: 1, justifyContent: 'center', backgroundColor: 'var(--accent-secondary)' }} onClick={handlePrint}>
               <Printer size={18} /> พิมพ์ / PDF
+            </button>
+            <button 
+              className="btn-primary" 
+              style={{ flex: 1, justifyContent: 'center' }} 
+              onClick={saveQuotation}
+              disabled={loading || !quoteData.customer || quoteData.items.length === 0}
+            >
+              <Save size={18} /> {loading ? 'กำลังบันทึก...' : 'บันทึกใบเสนอราคา'}
             </button>
           </div>
         </div>
 
         {/* RIGHT PANEL: Preview A4 */}
-        <div style={styles.rightPanel}>
-          <div className="print-container">
-            {paginatedItems.map((pageItems, pageIndex) => (
-              <div key={pageIndex} className="a4-preview print-area" style={{ marginBottom: pageIndex < totalPages - 1 ? '20px' : '0', pageBreakAfter: pageIndex < totalPages - 1 ? 'always' : 'auto' }}>
-                {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid var(--text-primary)', paddingBottom: '1rem', marginBottom: '2rem' }}>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    {settings.companyLogo && (
-                      <img src={settings.companyLogo} alt="Logo" style={{ maxHeight: '80px', maxWidth: '150px', objectFit: 'contain' }} />
-                    )}
-                    <div>
-                      <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>{settings.companyName || settings['Company Name'] || 'บริษัท สมาร์ทโควท จำกัด'}</h1>
-                      <p style={{ fontSize: '12px', color: '#666' }}>{settings.companyAddress || settings['Address'] || '123 ถ.สุขุมวิท กรุงเทพฯ 10110'}</p>
-                      <p style={{ fontSize: '12px', color: '#666' }}>โทร: {settings.companyPhone || settings['Phone'] || '02-123-4567'} | เลขภาษี: {settings.companyTaxId || settings['Tax ID'] || '01055xxxxxxxx'}</p>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--accent-primary)' }}>ใบเสนอราคา</h2>
-                    <h3 style={{ fontSize: '18px', color: '#666' }}>QUOTATION</h3>
-                  </div>
-                </div>
-
-                {/* Info block */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-                  <div style={{ width: '50%', border: '1px solid #ccc', padding: '1rem', borderRadius: '4px' }}>
-                    <p><strong>ลูกค้า:</strong> {quoteData.customer.name}</p>
-                    <p><strong>ที่อยู่:</strong> {quoteData.customer.address}</p>
-                    <p><strong>เลขประจำตัวผู้เสียภาษี:</strong> {quoteData.customer.taxId}</p>
-                    <p><strong>เบอร์โทร:</strong> {quoteData.customer.phone}</p>
-                  </div>
-                  <div style={{ width: '48%', border: '1px solid #ccc', padding: '1rem', borderRadius: '4px' }}>
-                    <p><strong>เลขที่:</strong> {quoteData.quotation_no}</p>
-                    <p><strong>วันที่:</strong> {quoteData.date}</p>
-                    <p><strong>พนักงานขาย:</strong> {quoteData.employee?.name || ''}</p>
-                  </div>
-                </div>
-
-                {/* Table */}
-                <table style={styles.printTable}>
-                  <thead>
-                    <tr>
-                      <th style={{ width: '5%', textAlign: 'center' }}>ลำดับ</th>
-                      <th style={{ width: '50%' }}>รายการ</th>
-                      <th style={{ width: '10%', textAlign: 'center' }}>จำนวน</th>
-                      <th style={{ width: '10%', textAlign: 'center' }}>หน่วย</th>
-                      <th style={{ width: '12%', textAlign: 'right' }}>ราคา/หน่วย</th>
-                      <th style={{ width: '13%', textAlign: 'right' }}>จำนวนเงิน</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pageItems.map((item, index) => (
-                      <tr key={item.id}>
-                        <td style={{ textAlign: 'center' }}>{(pageIndex * ITEMS_PER_PAGE) + index + 1}</td>
-                        <td>{item.description}</td>
-                        <td style={{ textAlign: 'center' }}>{item.quantity}</td>
-                        <td style={{ textAlign: 'center' }}>{item.unit}</td>
-                        <td style={{ textAlign: 'right' }}>{formatMoney(item.unit_price)}</td>
-                        <td style={{ textAlign: 'right' }}>{formatMoney(item.total)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {/* Totals and Signatures only on the last page */}
-                {pageIndex === totalPages - 1 && (
-                  <>
-                    {/* Totals */}
-                    <div className="print-totals-section" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
-                      <div style={{ width: '50%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-                        <p><strong>หมายเหตุ:</strong> {quoteData.remark}</p>
-                      </div>
-                      <div style={{ width: '48%' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                          <tbody>
-                            <tr>
-                              <td style={{ padding: '0.25rem' }}>รวมเงิน</td>
-                              <td style={{ padding: '0.25rem', textAlign: 'right' }}>{formatMoney(quoteData.subtotal)}</td>
-                            </tr>
-                            <tr>
-                              <td style={{ padding: '0.25rem' }}>ภาษีมูลค่าเพิ่ม 7%</td>
-                              <td style={{ padding: '0.25rem', textAlign: 'right' }}>{formatMoney(quoteData.vat)}</td>
-                            </tr>
-                            <tr>
-                              <td style={{ padding: '0.25rem', fontWeight: 'bold' }}>ยอดเงินสุทธิ</td>
-                              <td style={{ padding: '0.25rem', textAlign: 'right', fontWeight: 'bold', borderTop: '2px solid #333' }}>{formatMoney(quoteData.total)}</td>
-                            </tr>
-                            <tr>
-                              <td colSpan="2" style={{ padding: '0.25rem', textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem', color: '#333', fontStyle: 'italic', borderBottom: '2px solid #333' }}>
-                                ( {THBText(quoteData.total)} )
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    {/* Signatures */}
-                    <div className="print-signature-section" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4rem' }}>
-                      <div style={styles.signatureBox}>
-                        <div style={styles.signatureLine}></div>
-                        <p>ผู้เสนอราคา</p>
-                        <p>วันที่: ...../...../.....</p>
-                      </div>
-                      <div style={styles.signatureBox}>
-                        <div style={styles.signatureLine}></div>
-                        <p>ผู้อนุมัติ</p>
-                        <p>วันที่: ...../...../.....</p>
-                      </div>
-                      <div style={styles.signatureBox}>
-                        <div style={styles.signatureLine}></div>
-                        <p>ผู้รับใบเสนอราคา</p>
-                        <p>วันที่: ...../...../.....</p>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Page Indicator */}
-                {totalPages > 1 && (
-                  <div className="no-print" style={{ textAlign: 'right', fontSize: '12px', marginTop: '1rem', color: '#666' }}>
-                    หน้า {pageIndex + 1} / {totalPages}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+        <QuotationPrintPreview 
+          quoteData={quoteData}
+          settings={settings}
+          paginatedItems={paginatedItems}
+          totalPages={totalPages}
+        />
       </div>
       
-      <style dangerouslySetInnerHTML={{__html: `
-        .btn-mode {
-          border: none; background: transparent; padding: 0.5rem 1rem; border-radius: var(--radius-full);
-          font-family: inherit; font-weight: 600; color: var(--text-secondary); cursor: pointer;
-          display: flex; gap: 0.5rem; align-items: center; transition: all 0.2s;
-        }
-        .btn-mode.active { background: var(--bg-secondary); color: var(--accent-primary); box-shadow: var(--shadow-sm); }
-        .a4-preview {
-          background: white; color: black; width: 210mm; min-height: 297mm;
-          padding: 20mm; margin: 0 auto; box-shadow: var(--shadow-lg);
-          font-family: 'Sarabun', 'Prompt', sans-serif;
-        }
-        .a4-preview table {
-          border-collapse: collapse;
-          width: 100%;
-        }
-        .a4-preview table th,
-        .a4-preview table td {
-          border: 1px solid #ccc;
-          padding: 6px 8px;
-          font-size: 13px;
-        }
-        .a4-preview table th {
-          background: #f3f4f6;
-          font-weight: 600;
-        }
-        @media print {
-          @page {
-            size: A4;
-            margin: 15mm 15mm 20mm 15mm;
-          }
-          html, body {
-            width: 210mm;
-            height: auto;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: white !important;
-            color: black !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          body * { visibility: hidden; }
-          .print-container, .print-container * { visibility: visible; }
-          .print-container {
-            position: absolute;
-            left: 0; top: 0;
-            width: 100%;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-          .print-area {
-            position: relative !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            min-height: auto !important;
-            background: white !important;
-            color: black !important;
-          }
-          .no-print { display: none !important; }
-          
-          /* Table pagination support */
-          .print-area table {
-            page-break-inside: auto;
-          }
-          .print-area table thead {
-            display: table-header-group;
-          }
-          .print-area table tr {
-            page-break-inside: avoid;
-            page-break-after: auto;
-          }
-          
-          /* Signature section stays together and at bottom */
-          .print-signature-section {
-            page-break-inside: avoid;
-            margin-top: 3rem;
-          }
 
-          /* Totals section stays together */
-          .print-totals-section {
-            page-break-inside: avoid;
-          }
-        }
-      `}} />
     </div>
   );
 }
@@ -743,11 +506,6 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '1rem'
-  },
-  rightPanel: {
-    background: 'var(--bg-tertiary)',
-    padding: '2rem',
-    borderRadius: 'var(--radius-md)'
   },
   formSection: {
     borderBottom: '1px solid var(--border-color)',
@@ -772,21 +530,5 @@ const styles = {
     fontSize: '0.9rem',
     color: 'var(--text-primary)',
     fontWeight: 500
-  },
-  printTable: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    marginTop: '1rem',
-    fontSize: '14px'
-  },
-  signatureBox: {
-    textAlign: 'center',
-    width: '30%',
-    fontSize: '14px'
-  },
-  signatureLine: {
-    borderBottom: '1px dotted #000',
-    marginBottom: '0.5rem',
-    height: '2rem'
   }
 };

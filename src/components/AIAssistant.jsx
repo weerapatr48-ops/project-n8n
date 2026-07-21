@@ -347,6 +347,25 @@ export default function AIAssistant({ setCurrentTab, setAiQuotationData }) {
           if (setAiQuotationData) setAiQuotationData(data.data);
           if (setCurrentTab) setCurrentTab('quote_maker');
         }
+
+        if (action === 'frontend_db' && data.data) {
+          const { operation, table, payload } = data.data;
+          if (Array.isArray(payload)) {
+            // Execute sequentially to avoid Google Sheets API rate limit
+            for (const item of payload) {
+              await fetch(`${url}/webhook/db-write`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
+                body: JSON.stringify({
+                  action: operation === 'add' ? 'insert' : operation,
+                  sheet: table,
+                  data: item
+                })
+              }).catch(e => console.error(e));
+            }
+            if (typeof refreshData === 'function') refreshData();
+          }
+        }
       } else {
         const errText = await res.text();
         setChatHistory(prev => [...prev, {

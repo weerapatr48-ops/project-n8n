@@ -10,40 +10,49 @@ const getN8nUrl = () => {
   }
 };
 
-export default function QuotationHistory() {
+export default function QuotationHistory({ setCurrentTab, setAiQuotationData }) {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchHistory = async () => {
     setIsLoading(true);
     try {
-      // เรียก API n8n Webhook เพื่อดึงข้อมูลประวัติ (ต้องไปสร้าง Webhook ฝั่ง n8n มารับ)
       const response = await fetch(`${getN8nUrl()}/webhook/quotations-history`, { method: 'GET' });
-      if (response.ok) {
-        const result = await response.json();
-        let rawData = [];
-        if (Array.isArray(result) && result[0]?.json) rawData = result.map(item => item.json);
-        else if (Array.isArray(result)) rawData = result;
-        else if (result && Array.isArray(result.data)) rawData = result.data;
-        
-        rawData.sort((a, b) => {
-          const idA = String(a.id || a['เลขที่'] || a['เลขที่ใบเสนอราคา'] || a['รหัส'] || '');
-          const idB = String(b.id || b['เลขที่'] || b['เลขที่ใบเสนอราคา'] || b['รหัส'] || '');
-          return idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
-        });
-        
-        setData(rawData);
-      } else {
-        throw new Error('API Error');
+      if (!response.ok) throw new Error('API Error');
+      
+      const result = await response.json();
+      let rawData = [];
+      if (Array.isArray(result) && result[0]?.json) rawData = result.map(item => item.json);
+      else if (Array.isArray(result)) rawData = result;
+      else if (result && Array.isArray(result.data)) rawData = result.data;
+      
+      let mergedData = [];
+      for (const item of rawData) {
+        const id = item.quotation_no || item.id || item['เลขที่'] || item['เลขที่เอกสาร'] || item['รหัส'];
+        if (id) {
+          mergedData.push({
+             ...item,
+             id: id,
+             customer: item.customer_name || item.customer || item['ลูกค้า'] || '-',
+             total: item.total || item['ยอดรวมสุทธิ'] || 0,
+             status: item.status || item['สถานะ'] || 'Pending',
+             date: item.date || item['วันที่'],
+             items_json: item.items_json,
+             rawItem: item
+          });
+        }
       }
+
+      mergedData.sort((a, b) => {
+        const dateA = new Date(a.date || 0).getTime();
+        const dateB = new Date(b.date || 0).getTime();
+        return dateB - dateA;
+      });
+      
+      setData(mergedData);
     } catch (error) {
-      console.log('Failed to fetch from n8n, loading dummy data for preview');
-      // ใส่ข้อมูลจำลองให้ดูเป็นตัวอย่างเผื่อฝั่ง n8n ยังทำ API ไม่เสร็จ
-      setData([
-        { id: 'QT-2023-001', date: '2023-10-01', customer: 'บริษัท เอ.อี.เอส จำกัด', total: 150000, status: 'Completed' },
-        { id: 'QT-2023-002', date: '2023-10-02', customer: 'บริษัท เทสต์สเตป จำกัด', total: 45000, status: 'Draft' },
-        { id: 'QT-2023-003', date: '2023-10-05', customer: 'บริษัท สมมติ จำกัด', total: 250000, status: 'Completed' },
-      ]);
+      console.log('Failed to fetch from n8n', error);
+      setData([]);
     } finally {
       setIsLoading(false);
     }
@@ -55,6 +64,26 @@ export default function QuotationHistory() {
 
   const totalQuotations = data.length;
   const totalValue = data.reduce((sum, item) => sum + (Number(item.total || item['ยอดรวมสุทธิ'] || 0)), 0);
+
+  const handleEdit = (row) => {
+    let items = [];
+    try {
+      if (row.items_json) {
+        items = JSON.parse(row.items_json);
+      }
+    } catch(e) {
+      console.error('Failed to parse items_json', e);
+    }
+    
+    if (setAiQuotationData && setCurrentTab) {
+      setAiQuotationData({
+        quotation_no: row.id || row['เลขที่เอกสาร'],
+        customerInfo: { name: row.customer },
+        items: items
+      });
+      setCurrentTab('quote_maker');
+    }
+  };
 
   return (
     <div style={{ maxWidth: '100%', margin: '0 auto', padding: '1rem 0' }}>
@@ -123,14 +152,14 @@ export default function QuotationHistory() {
                       backgroundColor: (row.status || row['สถานะ']) === 'Completed' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
                       color: (row.status || row['สถานะ']) === 'Completed' ? 'var(--success)' : '#f59e0b'
                     }}>
-                      {row.status || row['สถานะ'] || 'Draft'}
+                      {row.status || row['สถานะ'] || 'Pending'}
                     </span>
                   </td>
                   <td style={{ padding: '1rem' }}>
-                    <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginRight: '10px' }} title="ดูรายละเอียด">
+                    <button onClick={() => handleEdit(row)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginRight: '10px' }} title="ดูรายละเอียด">
                       <FileText size={18} />
                     </button>
-                    <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="ดาวน์โหลด">
+                    <button onClick={() => handleEdit(row)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="ดาวน์โหลด">
                       <Download size={18} />
                     </button>
                   </td>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, RefreshCw, AlertTriangle, Check, X, Database } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
 import StockManager from './StockManager';
 
 const getN8nUrl = () => {
@@ -27,6 +28,7 @@ const SHEETS_CONFIG = [
 
 export default function DatabaseManager() {
   const { auth } = useAuth();
+  const { employees, refreshData } = useData();
   const role = auth?.user?.role || 'user';
   
   // Filter sheets based on role
@@ -41,31 +43,7 @@ export default function DatabaseManager() {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [isSaving, setIsSaving] = useState(false);
-  const [employees, setEmployees] = useState([]);
 
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const n8nUrl = getN8nUrl();
-        const res = await fetch(`${n8nUrl}/webhook/db-read?sheet=empolyee`);
-        const text = await res.text();
-        const result = JSON.parse(text);
-        let empData = [];
-        if (Array.isArray(result)) {
-          empData = result.length > 0 && result[0]?.json ? result.map(i => i.json) : result;
-        } else if (result && typeof result === 'object' && !result.error) {
-           const keys = Object.keys(result);
-           const hasNumericKeys = keys.length > 0 && keys.every(k => !isNaN(k));
-           if (hasNumericKeys) empData = Object.values(result);
-           else empData = [result];
-        }
-        setEmployees(empData);
-      } catch (e) {
-        console.error('Failed to fetch employees:', e);
-      }
-    };
-    fetchEmployees();
-  }, []);
 
   useEffect(() => {
     if (activeDb && activeDb !== 'stock_ui') {
@@ -137,6 +115,12 @@ export default function DatabaseManager() {
           setIsLoading(false);
           return;
         }
+
+        rawData = rawData.filter(row => {
+          return Object.entries(row).some(([k, v]) => 
+            !['row_number', 'rowNumber'].includes(k) && !k.startsWith('_') && v !== null && v !== undefined && String(v).trim() !== ''
+          );
+        });
 
         if (rawData.length > 0) {
           // Extract dynamic columns from first row, excluding internal/junk columns
