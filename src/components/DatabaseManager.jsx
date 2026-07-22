@@ -500,7 +500,9 @@ export default function DatabaseManager() {
                         ) : (
                           <>
                             <button onClick={() => startEdit(row)} className="btn-icon" title="แก้ไข"><Edit2 size={16} /></button>
-                            <button onClick={() => handleDelete(row)} className="btn-icon danger" title="ลบ"><Trash2 size={16} /></button>
+                            {['admin', 'manager'].includes(String(role).trim().toLowerCase()) && (
+                              <button onClick={() => handleDelete(row)} className="btn-icon danger" title="ลบ (Admin/Manager)"><Trash2 size={16} /></button>
+                            )}
                           </>
                         )}
                       </td>

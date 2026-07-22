@@ -96,6 +96,17 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
   };
 
   const handleDeleteDeal = async (deal) => {
+    // Check permission before proceeding
+    const userRole = String(auth?.user?.role || '').trim().toLowerCase();
+    if (!['admin', 'manager'].includes(userRole)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'ไม่มีสิทธิ์',
+        text: 'เฉพาะ Admin หรือ Manager เท่านั้นที่สามารถลบดีลได้ครับ'
+      });
+      return;
+    }
+
     const confirm = await Swal.fire({
       title: 'ยืนยันการลบดีล',
       text: `คุณแน่ใจหรือไม่ว่าต้องการลบดีลของ ${deal.customer || deal['ชื่อลูกค้า'] || 'ลูกค้ารายนี้'}?`,
@@ -126,7 +137,6 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
       if (!response.ok) throw new Error('Delete failed');
       
       // Optimistic remove
-      const dealId = deal.id || deal.ID || deal['รหัส'];
       setDeals(currentDeals => currentDeals.filter(d => (d.id || d.ID || d['รหัส']) !== dealId));
       
       Swal.fire({ icon: 'success', title: 'ลบดีลสำเร็จ', timer: 1500, showConfirmButton: false });
@@ -419,6 +429,19 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
     });
   };
 
+  const styles = {
+    actionBtn: { 
+      background: 'var(--bg-tertiary)', 
+      border: 'none', 
+      padding: '0.4rem', 
+      borderRadius: '6px', 
+      cursor: 'pointer', 
+      display: 'flex', 
+      alignItems: 'center', 
+      color: 'var(--text-secondary)' 
+    }
+  };
+
   return (
     <div className="dashboard-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', height: 'calc(100vh - 4rem)', minHeight: 0, position: 'relative' }}>
       <div className="dashboard-header" style={{ marginBottom: '0', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -558,11 +581,11 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
                              </button>
                           )}
                         </div>
-                        {auth?.user?.role && String(auth.user.role).trim().toLowerCase() === 'admin' && (
+                        {auth?.user?.role && ['admin', 'manager'].includes(String(auth.user.role).trim().toLowerCase()) && (
                           <button 
                             style={{...styles.actionBtn, color: 'var(--danger)', background: 'transparent'}} 
                             onClick={() => handleDeleteDeal(deal)}
-                            title="ลบดีล (เฉพาะ Admin)"
+                            title="ลบดีล (Admin/Manager)"
                           >
                             <Trash2 size={14} />
                           </button>

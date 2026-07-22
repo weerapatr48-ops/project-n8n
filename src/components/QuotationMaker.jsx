@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { FileText, Bot, Plus, Trash2, Printer, Save, Search, AlertTriangle } from 'lucide-react';
+import { FileText, Bot, Plus, Trash2, Printer, Save, Search, AlertTriangle, CheckCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { THBText, formatMoney } from '../utils/formatters';
 import QuotationPrintPreview from './QuotationPrintPreview';
@@ -314,6 +314,105 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
     }
   };
 
+  const saveAndDeductStock = async () => {
+    try {
+      if (!quoteData.items || quoteData.items.length === 0) return;
+      
+      const confirm = await Swal.fire({
+        title: 'ยืนยันปิดการขาย & ตัดสต๊อก',
+        text: 'ระบบจะทำการบันทึกใบสั่งขายนี้และทำการตัดสต๊อกสินค้าทันที คุณแน่ใจหรือไม่?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981', // green
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'ยืนยัน, ตัดสต๊อกเลย'
+      });
+
+      if (!confirm.isConfirmed) return;
+
+      setLoading(true);
+      const s = getSettings();
+      const n8nUrl = s.n8nUrl || '';
+
+      // 1. Loop through items to deduct stock
+      let deductionLogs = [];
+      for (const item of quoteData.items) {
+        if (!item.description) continue;
+        
+        // Find raw product to get row_number
+        let rawProductsArray = [];
+        if (Array.isArray(rawProducts) && rawProducts.length > 0 && rawProducts[0]?.json) {
+          rawProductsArray = rawProducts.map(i => i.json);
+        } else if (Array.isArray(rawProducts)) {
+          rawProductsArray = rawProducts;
+        }
+
+        const prod = rawProductsArray.find(p => (p['ชื่อ'] || p['ชื่อสินค้า'] || p['ProductName'] || p.name || '') === item.description);
+        
+        if (prod) {
+          const rowNum = prod._rawRowNumber || prod.row_number || prod.rowNumber;
+          if (rowNum) {
+            const stockKey = Object.keys(prod).find(k => ['คงเหลือ', 'จำนวน', 'ยอดคงเหลือ', 'Qty', 'Quantity', 'จำนวนคงเหลือ'].includes(k)) || 'คงเหลือ';
+            const currentStock = Number(prod[stockKey]) || 0;
+            const qtyToDeduct = Number(item.quantity) || 0;
+            const newStock = currentStock - qtyToDeduct;
+
+            const payload = { ...prod, [stockKey]: newStock };
+            const idKey = Object.keys(payload).find(k => k.toLowerCase() === 'id' || k.includes('รหัส')) || 'id';
+
+            // Delete internal fields before sending
+            delete payload._rawRowNumber; delete payload.row_number; delete payload.rowNumber;
+            delete payload._action; delete payload._sheet; delete payload._idKey;
+
+            await fetch(`${n8nUrl}/webhook/db-write`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                action: 'update', 
+                sheet: 'product', 
+                data: payload,
+                idKey: idKey,
+                row_number: rowNum
+              })
+            }).catch(e => console.error("Failed to deduct stock for", item.description, e));
+
+            deductionLogs.push(`${item.description} (-${qtyToDeduct})`);
+          }
+        }
+      }
+
+      // 2. Save Quotation / Sales Order
+      const newQuote = { 
+        ...quoteData, 
+        id: quoteData.quotation_no,
+        customerName: quoteData.customer?.name || '-',
+        totalAmount: quoteData.total || 0,
+        status: 'Closed Won', // เปลี่ยนสถานะเป็นปิดการขาย
+        created_by: auth?.user?.name,
+        saved_at: new Date().toISOString(),
+        remark: `${quoteData.remark} (ตัดสต๊อกแล้ว: ${deductionLogs.join(', ')})`
+      };
+      
+      await fetch(`${n8nUrl}/webhook/quotations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newQuote)
+      }).catch(e => console.log("Failed to save quotation", e));
+      
+      Swal.fire({ 
+        icon: 'success', 
+        title: 'ปิดการขายสำเร็จ!', 
+        text: `ตัดสต๊อกเรียบร้อยแล้ว:\n${deductionLogs.join('\n')}`, 
+      });
+
+    } catch (err) {
+      console.log('Error deducting stock', err);
+      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'เกิดข้อผิดพลาดในการตัดสต๊อก' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!canAccess('quote')) return null;
 
   const ITEMS_PER_PAGE = 20;
@@ -472,11 +571,19 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
             </button>
             <button 
               className="btn-primary" 
-              style={{ flex: 1, justifyContent: 'center' }} 
+              style={{ flex: 1, justifyContent: 'center', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--accent-primary)' }} 
               onClick={saveQuotation}
               disabled={loading || !quoteData.customer || quoteData.items.length === 0}
             >
               <Save size={18} /> {loading ? 'กำลังบันทึก...' : 'บันทึกใบเสนอราคา'}
+            </button>
+            <button 
+              className="btn-primary" 
+              style={{ flex: 1.2, justifyContent: 'center', backgroundColor: '#10b981', color: 'white', border: 'none' }} 
+              onClick={saveAndDeductStock}
+              disabled={loading || !quoteData.customer || quoteData.items.length === 0}
+            >
+              <CheckCircle size={18} /> ปิดการขาย & ตัดสต๊อก
             </button>
           </div>
         </div>
