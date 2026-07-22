@@ -4,6 +4,7 @@ import {
   Users, FilePlus, AlertCircle, X, UserPlus, Pencil, Trash2,
   BarChart3, MessageSquare, ChevronDown, RefreshCw, Layers
 } from 'lucide-react';
+import { useData } from '../context/DataContext';
 
 const getN8nUrl = () => {
   try {
@@ -281,10 +282,11 @@ function QuotationPreview({ data, issuerInfo, onClose }) {
 }
 
 export default function AIAssistant({ setCurrentTab, setAiQuotationData }) {
+  const { customers, refreshData } = useData();
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
-    const [issuerInfo, setIssuerInfo] = useState({});
+  const [issuerInfo, setIssuerInfo] = useState({});
   const [chatHistory, setChatHistory] = useState([
     {
       role: 'ai',
@@ -328,12 +330,15 @@ export default function AIAssistant({ setCurrentTab, setAiQuotationData }) {
     setIsGenerating(true);
 
     const url = getN8nUrl();
+    
+    // Inject system instruction so AI knows how to handle updates correctly without losing the original reference
+    const payloadText = text + "\n\n(System Instruction: If the user wants to UPDATE or EDIT existing data, you MUST include a field named 'old_name' containing the original name of the target being edited, so we can find it in the database.)";
 
     try {
       const res = await fetch(`${url}/webhook/ai-assistant`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
-        body: JSON.stringify({ prompt: text })
+        body: JSON.stringify({ prompt: payloadText })
       });
 
       if (res.ok) {
@@ -350,16 +355,129 @@ export default function AIAssistant({ setCurrentTab, setAiQuotationData }) {
 
         if (action === 'frontend_db' && data.data) {
           const { operation, table, payload } = data.data;
-          if (Array.isArray(payload)) {
+          
+          // AI might return a single object instead of an array. Wrap it in an array to be safe.
+          const payloadArray = Array.isArray(payload) ? payload : (payload ? [payload] : []);
+          
+          if (payloadArray.length > 0) {
             // Execute sequentially to avoid Google Sheets API rate limit
-            for (const item of payload) {
+            for (const item of payloadArray) {
+              let mappedItem = { ...item };
+              const tableName = (table || '').toLowerCase();
+              
+              // Map AI's JSON output to exact Google Sheets headers
+              if (tableName === 'customer' || tableName === 'customers' || tableName === 'ลูกค้า') {
+                mappedItem = {
+                  'รหัสลูกค้า/ผู้ขาย': item.id || item.customerId || item.code || item['รหัสลูกค้า/ผู้ขาย'] || '',
+                  'ชื่อลูกค้า/ผู้ขาย': item.name || item.companyName || item.customerName || item['ชื่อลูกค้า/ผู้ขาย'] || item['ชื่อลูกค้า'] || '',
+                  'โทรศัพท์': item.phone || item.tel || item['โทรศัพท์'] || item['เบอร์โทร'] || '',
+                  'ที่อยู่ 1': item.address || item['ที่อยู่ 1'] || item['ที่อยู่'] || '',
+                  'อีเมล': item.email || item['อีเมล'] || '',
+                  'เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย': item.taxId || item['เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย'] || item['เลขภาษี'] || '',
+                  'ผู้ติดต่อ': item.contact || item.contactPerson || item.contact_name || item['ผู้ติดต่อ'] || item['บุคคลติดต่อ'] || '',
+                  'ชื่อกลุ่มระดับลูกค้า/ผู้ขาย': item.type || item.group || item['ชื่อกลุ่มระดับลูกค้า/ผู้ขาย'] || item['ระดับลูกค้า'] || 'Credit' // Default as Credit
+                };
+                
+                // Auto-generate ID (CTxxx / PRxxx logic)
+                if ((operation === 'add' || operation === 'insert') && !mappedItem['รหัสลูกค้า/ผู้ขาย']) {
+                  const groupValue = (mappedItem['ชื่อกลุ่มระดับลูกค้า/ผู้ขาย'] || '').toString().toLowerCase();
+                  let firstChar = 'C'; 
+                  if (groupValue.includes('vender') || groupValue.includes('vendor')) {
+                    firstChar = 'P';
+                  } else if (groupValue.includes('credit')) {
+                    firstChar = 'C';
+                  }
+                  
+                  const nameValue = (mappedItem['ชื่อลูกค้า/ผู้ขาย'] || '').toString();
+                  const getEnglishInitial = (text) => {
+                    let cleanText = text.replace(/^(บริษัท|บจก\.|บมจ\.|หจก\.|ห้างหุ้นส่วนจำกัด|ร้าน)\s*/g, '').trim();
+                    if (!cleanText) cleanText = text;
+                    const engMatch = cleanText.match(/[a-zA-Z]/);
+                    if (engMatch) return engMatch[0].toUpperCase();
+                    const consonantMatch = cleanText.match(/[ก-ฮ]/);
+                    if (consonantMatch) {
+                      const map = {
+                        'ก':'K','ข':'K','ฃ':'K','ค':'K','ฅ':'K','ฆ':'K','ง':'N','จ':'J',
+                        'ฉ':'C','ช':'C','ซ':'S','ฌ':'C','ญ':'Y','ฎ':'D','ฏ':'T','ฐ':'T',
+                        'ฑ':'T','ฒ':'T','ณ':'N','ด':'D','ต':'T','ถ':'T','ท':'T','ธ':'T',
+                        'น':'N','บ':'B','ป':'P','ผ':'P','ฝ':'F','พ':'P','ฟ':'F','ภ':'P',
+                        'ม':'M','ย':'Y','ร':'R','ล':'L','ว':'W','ศ':'S','ษ':'S','ส':'S',
+                        'ห':'H','ฬ':'L','อ':'O','ฮ':'H'
+                      };
+                      return map[consonantMatch[0]] || 'X';
+                    }
+                    return 'X';
+                  };
+                  
+                  const secondChar = getEnglishInitial(nameValue);
+                  const prefix = `${firstChar}${secondChar}`;
+                  let maxNum = 0;
+                  
+                  (customers || []).forEach(row => {
+                    const existingId = (row['รหัสลูกค้า/ผู้ขาย'] || row['id'] || '').toString();
+                    if (existingId.startsWith(prefix)) {
+                      const numPart = existingId.substring(2);
+                      const num = parseInt(numPart, 10);
+                      if (!isNaN(num) && num > maxNum) {
+                        maxNum = num;
+                      }
+                    }
+                  });
+                  
+                  const nextNum = (maxNum + 1).toString().padStart(3, '0');
+                  mappedItem['รหัสลูกค้า/ผู้ขาย'] = `${prefix}${nextNum}`;
+                }
+                
+                // Remove empty keys to avoid overwriting existing data with blanks on update
+                Object.keys(mappedItem).forEach(key => {
+                  if (mappedItem[key] === '' && operation === 'update') {
+                    delete mappedItem[key];
+                  }
+                });
+              }
+
+              const isUpdate = operation === 'update';
+              const isDelete = operation === 'delete' || operation === 'remove';
+              let rowNum = undefined;
+              let finalIdKey = 'id';
+
+              if (tableName === 'customer' || tableName === 'customers' || tableName === 'ลูกค้า') {
+                finalIdKey = 'รหัสลูกค้า/ผู้ขาย';
+                if (isUpdate || isDelete) {
+                  // Find the exact row_number from local context data to guarantee update/delete success
+                  const targetId = mappedItem['รหัสลูกค้า/ผู้ขาย'];
+                  const targetName = mappedItem['ชื่อลูกค้า/ผู้ขาย'];
+                  const targetContact = mappedItem['ผู้ติดต่อ'];
+                  const oldName = item.old_name || item.oldName || item.target || item.search;
+                  
+                  const existingCust = (customers || []).find(c => 
+                    (targetId && c['รหัสลูกค้า/ผู้ขาย'] === targetId) || 
+                    (oldName && String(c['ชื่อลูกค้า/ผู้ขาย'] || '').includes(oldName)) ||
+                    (targetName && String(c['ชื่อลูกค้า/ผู้ขาย'] || '').includes(targetName)) ||
+                    (targetContact && String(c['ผู้ติดต่อ'] || '').includes(targetContact))
+                  );
+                  
+                  if (existingCust) {
+                    rowNum = existingCust.row_number || existingCust.rowNumber || existingCust._rawRowNumber;
+                    mappedItem['รหัสลูกค้า/ผู้ขาย'] = existingCust['รหัสลูกค้า/ผู้ขาย']; // lock ID
+                    if (isUpdate && !targetName) {
+                      mappedItem['ชื่อลูกค้า/ผู้ขาย'] = existingCust['ชื่อลูกค้า/ผู้ขาย'];
+                    }
+                  } else {
+                    console.warn(`AI ${operation} Error: Could not find existing customer matching`, mappedItem);
+                  }
+                }
+              }
+
               await fetch(`${url}/webhook/db-write`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
                 body: JSON.stringify({
-                  action: operation === 'add' ? 'insert' : operation,
+                  action: operation === 'add' ? 'insert' : (isDelete ? 'delete' : operation),
                   sheet: table,
-                  data: item
+                  data: isDelete ? { row_number: rowNum } : mappedItem,
+                  idKey: finalIdKey,
+                  row_number: rowNum
                 })
               }).catch(e => console.error(e));
             }

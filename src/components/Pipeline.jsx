@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { KanbanSquare, Building, PhoneCall, Mail, Clock, CheckCircle2, Activity, Plus, Trash2 } from 'lucide-react';
+import { KanbanSquare, Building, PhoneCall, Mail, Clock, CheckCircle2, Activity, Plus, Trash2, FileText, Send, MessageSquare } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
@@ -24,6 +24,12 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
     tags: '',
     stage: 'lead'
   });
+
+  // Activity Logger Modal State
+  const [activityModalDeal, setActivityModalDeal] = useState(null);
+  const [activityType, setActivityType] = useState('note');
+  const [activityNote, setActivityNote] = useState('');
+  const [isSavingActivity, setIsSavingActivity] = useState(false);
 
   const generateNextDealId = () => {
     let maxNum = 0;
@@ -129,6 +135,155 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
       Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ' });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleSaveActivity = async (e) => {
+    e.preventDefault();
+    if (!activityNote.trim() || !activityModalDeal) return;
+
+    setIsSavingActivity(true);
+    try {
+      const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
+      const n8nUrl = settings.n8nUrl || '';
+      
+      const rowNumber = activityModalDeal.row_number || activityModalDeal.rowNumber || activityModalDeal._rawRowNumber;
+      if (!rowNumber) {
+        throw new Error('ไม่พบ Row Number ของดีลนี้ โปรดรีเฟรชหน้าเว็บ');
+      }
+
+      // ดึงประวัติเดิมมา
+      const historyStr = activityModalDeal['ประวัติการติดต่อ'] || activityModalDeal.History || '[]';
+      let historyArray = [];
+      try {
+        historyArray = JSON.parse(historyStr);
+        if (!Array.isArray(historyArray)) historyArray = [];
+      } catch (e) {
+        historyArray = [];
+      }
+
+      // เพิ่มประวัติใหม่
+      const newActivity = {
+        id: Date.now().toString(),
+        type: activityType,
+        text: activityNote,
+        date: new Date().toLocaleString('th-TH'),
+        user: auth?.user?.name || 'เซลส์'
+      };
+      
+      historyArray.unshift(newActivity); // เอาล่าสุดไว้บนสุด
+      const updatedHistoryStr = JSON.stringify(historyArray);
+
+      // สร้าง Payload แบบเต็มๆ เหมือนตอนลากการ์ด
+      const payload = { ...activityModalDeal, 'ประวัติการติดต่อ': updatedHistoryStr };
+      delete payload._rawRowNumber;
+      delete payload.row_number;
+      delete payload.rowNumber;
+      delete payload._action;
+      delete payload._sheet;
+      delete payload._idKey;
+
+      const idKey = Object.keys(payload).find(k => k.toLowerCase() === 'id' || k.includes('รหัส')) || 'id';
+
+      // อัปเดตไปยัง Google Sheets
+      const response = await fetch(`${n8nUrl}/webhook/db-write`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'update', 
+          sheet: 'pipeline', 
+          data: payload,
+          idKey: idKey,
+          row_number: rowNumber
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to save activity');
+      
+      // Optimistic UI
+      setDeals(currentDeals => currentDeals.map(d => 
+        (d.id || d.ID || d['รหัส']) === (activityModalDeal.id || activityModalDeal.ID || activityModalDeal['รหัส']) 
+          ? { ...d, 'ประวัติการติดต่อ': updatedHistoryStr } 
+          : d
+      ));
+
+      setActivityNote('');
+      setActivityModalDeal(null); // ปิดหน้าต่าง
+      
+    } catch (error) {
+      console.error('Activity error:', error);
+      Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: error.message });
+    } finally {
+      setIsSavingActivity(false);
+    }
+  };
+
+  const handleDeleteActivity = async (activityId) => {
+    const confirm = await Swal.fire({
+      title: 'ลบประวัติการติดต่อนี่?',
+      text: 'การลบนี้จะหายไปถาวร (เฉพาะ Admin เท่านั้นที่ทำได้)',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'ใช่, ลบเลย'
+    });
+
+    if (!confirm.isConfirmed || !activityModalDeal) return;
+
+    try {
+      const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
+      const n8nUrl = settings.n8nUrl || '';
+      
+      const rowNumber = activityModalDeal.row_number || activityModalDeal.rowNumber || activityModalDeal._rawRowNumber;
+      if (!rowNumber) throw new Error('ไม่พบ Row Number');
+
+      // ดึงประวัติเดิมมา
+      const historyStr = activityModalDeal['ประวัติการติดต่อ'] || activityModalDeal.History || '[]';
+      let historyArray = JSON.parse(historyStr);
+      
+      // กรองอันที่ต้องการลบออก
+      historyArray = historyArray.filter(act => act.id !== activityId);
+      const updatedHistoryStr = JSON.stringify(historyArray);
+
+      // สร้าง Payload
+      const payload = { ...activityModalDeal, 'ประวัติการติดต่อ': updatedHistoryStr };
+      delete payload._rawRowNumber;
+      delete payload.row_number;
+      delete payload.rowNumber;
+      delete payload._action;
+      delete payload._sheet;
+      delete payload._idKey;
+
+      const idKey = Object.keys(payload).find(k => k.toLowerCase() === 'id' || k.includes('รหัส')) || 'id';
+
+      // อัปเดตไปยัง Google Sheets
+      const response = await fetch(`${n8nUrl}/webhook/db-write`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'update', 
+          sheet: 'pipeline', 
+          data: payload,
+          idKey: idKey,
+          row_number: rowNumber
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to delete activity');
+      
+      // Optimistic UI
+      setDeals(currentDeals => currentDeals.map(d => 
+        (d.id || d.ID || d['รหัส']) === (activityModalDeal.id || activityModalDeal.ID || activityModalDeal['รหัส']) 
+          ? { ...d, 'ประวัติการติดต่อ': updatedHistoryStr } 
+          : d
+      ));
+
+      // อัปเดต Modal State ด้วย
+      setActivityModalDeal({ ...activityModalDeal, 'ประวัติการติดต่อ': updatedHistoryStr });
+
+    } catch (error) {
+      console.error('Delete Activity error:', error);
+      Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ' });
     }
   };
 
@@ -377,8 +532,9 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
                       
                       <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', flex: 1, flexWrap: 'wrap' }}>
-                          <button style={styles.actionBtn} title="บันทึกการโทร"><PhoneCall size={14} /></button>
-                          <button style={styles.actionBtn} title="ส่งอีเมล"><Mail size={14} /></button>
+                          <button style={styles.actionBtn} title="เพิ่มโน้ต" onClick={() => { setActivityType('note'); setActivityModalDeal(deal); }}><FileText size={14} /></button>
+                          <button style={styles.actionBtn} title="บันทึกการโทร" onClick={() => { setActivityType('call'); setActivityModalDeal(deal); }}><PhoneCall size={14} /></button>
+                          <button style={styles.actionBtn} title="บันทึกอีเมล" onClick={() => { setActivityType('email'); setActivityModalDeal(deal); }}><Mail size={14} /></button>
                           {stage.id !== 'quoting' && (
                              <button 
                                style={styles.actionBtn} 
@@ -494,6 +650,111 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
                 </button>
                 <button type="submit" className="btn-primary">
                   <CheckCircle2 size={18} /> บันทึกดีลใหม่
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Activity Logger Modal */}
+      {activityModalDeal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: '500px', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h2 style={{ margin: '0 0 0.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.25rem' }}>
+                    <MessageSquare size={20} color="var(--accent-primary)" /> บันทึกการติดต่อ
+                  </h2>
+                  <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    ลูกค้า: <strong style={{ color: 'var(--text-primary)' }}>{activityModalDeal.customer || activityModalDeal['ชื่อลูกค้า']}</strong>
+                  </p>
+                </div>
+                <button onClick={() => setActivityModalDeal(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                  <Trash2 size={18} style={{ opacity: 0 }} /> {/* Dummy for alignment, we can just use text or X but user can click cancel below */}
+                </button>
+              </div>
+            </div>
+
+            {/* Timeline History */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
+              <h3 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '1rem', fontWeight: 600 }}>ประวัติการติดต่อล่าสุด</h3>
+              {(() => {
+                const historyStr = activityModalDeal['ประวัติการติดต่อ'] || activityModalDeal.History || '[]';
+                let historyArray = [];
+                try { historyArray = JSON.parse(historyStr); } catch (e) {}
+                
+                if (!Array.isArray(historyArray) || historyArray.length === 0) {
+                  return <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textAlign: 'center', padding: '2rem 0' }}>ยังไม่มีประวัติการติดต่อ</div>;
+                }
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {historyArray.map(act => (
+                      <div key={act.id} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '0.2rem 0.6rem', borderRadius: '99px', background: act.type === 'call' ? 'rgba(59, 130, 246, 0.1)' : act.type === 'email' ? 'rgba(168, 85, 247, 0.1)' : 'var(--bg-tertiary)', color: act.type === 'call' ? '#3b82f6' : act.type === 'email' ? '#a855f7' : 'var(--text-secondary)' }}>
+                            {act.type === 'call' ? '📞 โทรศัพท์' : act.type === 'email' ? '✉️ อีเมล' : '📝 โน้ต'}
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{act.date}</span>
+                            {auth?.user?.role && String(auth.user.role).trim().toLowerCase() === 'admin' && (
+                              <button 
+                                onClick={() => handleDeleteActivity(act.id)}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center' }}
+                                title="ลบโน้ตนี้ (Admin)"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{act.text}</p>
+                        <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>โดย: {act.user}</div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Input Form */}
+            <form onSubmit={handleSaveActivity} style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                {['note', 'call', 'email'].map(type => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setActivityType(type)}
+                    style={{
+                      flex: 1, padding: '0.5rem', borderRadius: '8px', border: '1px solid', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600,
+                      background: activityType === type ? 'var(--accent-primary)' : 'var(--bg-secondary)',
+                      color: activityType === type ? '#fff' : 'var(--text-secondary)',
+                      borderColor: activityType === type ? 'var(--accent-primary)' : 'var(--border-color)',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {type === 'note' ? '📝 โน้ต' : type === 'call' ? '📞 โทรศัพท์' : '✉️ อีเมล'}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                autoFocus
+                className="input-field"
+                placeholder="พิมพ์รายละเอียดการติดต่อ..."
+                value={activityNote}
+                onChange={e => setActivityNote(e.target.value)}
+                style={{ width: '100%', minHeight: '100px', resize: 'vertical', marginBottom: '1rem', padding: '1rem' }}
+                required
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button type="button" onClick={() => setActivityModalDeal(null)} className="input-field" style={{ cursor: 'pointer', background: 'transparent', width: 'auto' }}>
+                  ปิด
+                </button>
+                <button type="submit" className="btn-primary" disabled={isSavingActivity || !activityNote.trim()}>
+                  {isSavingActivity ? <Activity size={18} className="pulse" /> : <Send size={18} />}
+                  บันทึกประวัติ
                 </button>
               </div>
             </form>
