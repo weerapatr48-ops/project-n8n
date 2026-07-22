@@ -232,8 +232,13 @@ export default function QuotationHistory({ setCurrentTab, setAiQuotationData }) 
                       borderRadius: '99px', 
                       fontSize: '0.75rem',
                       fontWeight: 500,
-                      backgroundColor: isCancelled ? 'rgba(239, 68, 68, 0.1)' : (row.status || row['สถานะ']) === 'Completed' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                      color: isCancelled ? 'var(--danger)' : (row.status || row['สถานะ']) === 'Completed' ? 'var(--success)' : '#f59e0b'
+                      backgroundColor: isCancelled ? 'rgba(239, 68, 68, 0.1)' : 
+                                       (row.status || row['สถานะ']) === 'รอคลังจัดส่ง (SO)' ? 'rgba(59, 130, 246, 0.1)' : // Blue
+                                       (row.status || row['สถานะ']) === 'Completed' ? 'rgba(16, 185, 129, 0.1)' : // Green
+                                       'rgba(245, 158, 11, 0.1)', // Yellow
+                      color: isCancelled ? 'var(--danger)' : 
+                             (row.status || row['สถานะ']) === 'รอคลังจัดส่ง (SO)' ? '#3b82f6' :
+                             (row.status || row['สถานะ']) === 'Completed' ? 'var(--success)' : '#f59e0b'
                     }}>
                       {row.status || row['สถานะ'] || 'Pending'}
                     </span>

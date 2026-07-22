@@ -6,10 +6,11 @@ import Swal from 'sweetalert2';
 
 export default function StockManager() {
   const { canAccess } = useAuth();
-  const { products: rawProducts, isDataLoaded, refreshData } = useData();
+  const { stockData, stockLogs, products: masterProducts, isDataLoaded, refreshData } = useData();
   const [activeTab, setActiveTab] = useState('list'); // 'list' or 'log'
   const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]); // This stores stock items
+  const [logs, setLogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   
   const [stockForm, setStockForm] = useState({
@@ -23,26 +24,42 @@ export default function StockManager() {
   const getSettings = () => JSON.parse(localStorage.getItem('appSettings') || '{}');
 
   useEffect(() => {
-    if (isDataLoaded && rawProducts) {
+    if (isDataLoaded && stockData) {
       let rawData = [];
-      if (Array.isArray(rawProducts) && rawProducts.length > 0 && rawProducts[0]?.json) {
-        rawData = rawProducts.map(item => item.json);
-      } else if (Array.isArray(rawProducts)) {
-        rawData = rawProducts;
+      if (Array.isArray(stockData) && stockData.length > 0 && stockData[0]?.json) {
+        rawData = stockData.map(item => item.json);
+      } else if (Array.isArray(stockData)) {
+        rawData = stockData;
       }
       
       const mappedProducts = rawData.map(row => ({
-        'รหัส': row['รหัส'] || row['รหัสสินค้า'] || row['ProductID'] || row.id || '-',
-        'ชื่อ': row['ชื่อ'] || row['ชื่อสินค้า'] || row['ProductName'] || row.name || '-',
-        'หน่วย': row['หน่วย'] || row['Unit'] || row.unit || 'ชิ้น',
-        'คงเหลือ': row['คงเหลือ'] || row['จำนวน'] || row['ยอดคงเหลือ'] || row['Qty'] || row['Quantity'] || row['จำนวนคงเหลือ'] || 0,
-        'สถานะ': row['สถานะ'] || row['Status'] || row.status || 'Active'
+        'รหัส': row['รหัส'] || row.id || '-',
+        'ชื่อ': row['ชื่อ'] || row.name || '-',
+        'หน่วย': row['หน่วย'] || 'ชิ้น',
+        'คงเหลือ': row['จำนวน'] || 0,
+        'สถานะ': row['สถานะ'] || 'Active'
       })).filter(row => row['ชื่อ'] && row['ชื่อ'] !== '-');
       
       mappedProducts.sort((a, b) => String(a['รหัส'] || '').localeCompare(String(b['รหัส'] || ''), undefined, { numeric: true, sensitivity: 'base' }));
       setProducts(mappedProducts);
     }
-  }, [isDataLoaded, rawProducts]);
+
+    if (isDataLoaded && stockLogs) {
+      let rawLogs = [];
+      if (Array.isArray(stockLogs) && stockLogs.length > 0 && stockLogs[0]?.json) {
+        rawLogs = stockLogs.map(item => item.json);
+      } else if (Array.isArray(stockLogs)) {
+        rawLogs = stockLogs;
+      }
+      
+      const mappedLogs = [...rawLogs].sort((a, b) => {
+        const dA = new Date(a.date || a['วันที่'] || a['วันที่ทำรายการ'] || 0);
+        const dB = new Date(b.date || b['วันที่'] || b['วันที่ทำรายการ'] || 0);
+        return dB - dA; // descending
+      });
+      setLogs(mappedLogs);
+    }
+  }, [isDataLoaded, stockData, stockLogs]);
 
   const handleStockSubmit = async (e) => {
     e.preventDefault();
@@ -54,19 +71,87 @@ export default function StockManager() {
     setLoading(true);
     try {
       const s = getSettings();
-      const prompt = `${stockForm.type === 'add' ? 'เพิ่ม' : 'ตัด'}สต็อก ${stockForm.productName} ${stockForm.amount} ${stockForm.unit}`;
-      
-      const res = await fetch(`${s.n8nUrl || ''}/webhook/ai-assistant`, {
+      const n8nUrl = s.n8nUrl || '';
+      const amount = Number(stockForm.amount);
+      const isAdd = stockForm.type === 'add';
+      const changeAmount = isAdd ? amount : -amount;
+
+      // 1. Find the product in stockData first
+      let rawStock = [];
+      if (Array.isArray(stockData) && stockData.length > 0 && stockData[0]?.json) {
+        rawStock = stockData.map(item => item.json);
+      } else if (Array.isArray(stockData)) {
+        rawStock = stockData;
+      }
+
+      const existingStock = rawStock.find(p => (p['ชื่อ'] || p.name || '') === stockForm.productName);
+
+      // If exists in stock, we update it
+      if (existingStock) {
+        const rowNum = existingStock._rawRowNumber || existingStock.row_number || existingStock.rowNumber;
+        const currentStock = Number(existingStock['จำนวน'] || 0);
+        const newStock = currentStock + changeAmount;
+        
+        const payload = { ...existingStock, 'จำนวน': newStock };
+        const idKey = Object.keys(payload).find(k => k.toLowerCase() === 'id' || k.includes('รหัส')) || 'id';
+
+        delete payload._rawRowNumber; delete payload.row_number; delete payload.rowNumber;
+        delete payload._action; delete payload._sheet; delete payload._idKey;
+
+        await fetch(`${n8nUrl}/webhook/db-write`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update', sheet: 'stock', data: payload, idKey: idKey, row_number: rowNum })
+        });
+      } else {
+        // If not exists in stock, we insert it!
+        // Get details from masterProducts
+        let rawMaster = [];
+        if (Array.isArray(masterProducts) && masterProducts.length > 0 && masterProducts[0]?.json) {
+          rawMaster = masterProducts.map(item => item.json);
+        } else if (Array.isArray(masterProducts)) {
+          rawMaster = masterProducts;
+        }
+        const masterProd = rawMaster.find(p => (p['ชื่อ'] || p['ชื่อสินค้า'] || p['ProductName'] || p.name || '') === stockForm.productName) || {};
+        
+        const payload = {
+          id: `ST-${Date.now()}`,
+          'รหัส': masterProd['รหัส'] || masterProd['รหัสสินค้า'] || '',
+          'ชื่อ': stockForm.productName,
+          'จำนวน': changeAmount,
+          'หน่วย': stockForm.unit,
+          'วันที่รับเข้า': new Date().toISOString()
+        };
+
+        await fetch(`${n8nUrl}/webhook/db-write`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'insert', sheet: 'stock', data: payload })
+        });
+      }
+
+      // 2. Insert to Stock_Log
+      await fetch(`${n8nUrl}/webhook/db-write`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({
+          action: 'insert',
+          sheet: 'Stock_Log',
+          data: {
+            id: `LOG-${Date.now()}`,
+            product_name: stockForm.productName,
+            type: isAdd ? 'รับเข้า (Manual)' : 'ตัดออก (Manual)',
+            amount: changeAmount,
+            date: new Date().toISOString()
+          }
+        })
       });
       
-      await res.json();
       Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกสต็อกเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
       setStockForm({ ...stockForm, amount: 1, remark: '' });
-      refreshData(); // Refresh global products data
+      refreshData(); 
     } catch (err) {
+      console.log('Error manual stock', err);
       Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'เกิดข้อผิดพลาดในการบันทึกสต็อก' });
     } finally {
       setLoading(false);
@@ -185,18 +270,29 @@ export default function StockManager() {
                     <label className="input-label">เลือกสินค้า</label>
                     <input 
                       className="input-field" 
-                      list="product-list" 
+                      list="master-product-list" 
                       required
                       placeholder="พิมพ์เพื่อค้นหาสินค้า..."
                       value={stockForm.productName}
                       onChange={(e) => {
                         const val = e.target.value;
-                        const prod = products.find(p => p['ชื่อ'] === val);
-                        setStockForm({ ...stockForm, productName: val, unit: prod ? prod['หน่วย'] : stockForm.unit });
+                        let rawMaster = [];
+                        if (Array.isArray(masterProducts) && masterProducts.length > 0 && masterProducts[0]?.json) {
+                          rawMaster = masterProducts.map(item => item.json);
+                        } else if (Array.isArray(masterProducts)) {
+                          rawMaster = masterProducts;
+                        }
+                        const prod = rawMaster.find(p => (p['ชื่อ'] || p['ชื่อสินค้า'] || p.name || '') === val);
+                        setStockForm({ ...stockForm, productName: val, unit: prod ? (prod['หน่วย'] || prod.unit) : stockForm.unit });
                       }}
                     />
-                    <datalist id="product-list">
-                      {products.map((p, i) => <option key={i} value={p['ชื่อ']} />)}
+                    <datalist id="master-product-list">
+                      {Array.isArray(masterProducts) && masterProducts.map((p, i) => {
+                        const row = p.json || p;
+                        const name = row['ชื่อ'] || row['ชื่อสินค้า'] || row.name || '';
+                        if (!name) return null;
+                        return <option key={i} value={name} />
+                      })}
                     </datalist>
                   </div>
 
@@ -231,15 +327,36 @@ export default function StockManager() {
                 </form>
               </div>
 
-              {/* Log Side (Placeholder for now until n8n webhook is ready) */}
+              {/* Log Side */}
               <div>
                 <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Activity size={20}/> ประวัติล่าสุด
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
-                    ไม่มีประวัติการทำรายการล่าสุด
-                  </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '500px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+                  {logs.length === 0 ? (
+                    <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)' }}>
+                      ไม่มีประวัติการทำรายการล่าสุด
+                    </div>
+                  ) : (
+                    logs.map((log, i) => {
+                      const amount = Number(log.amount || log['จำนวน'] || log['จำนวน (เข้า/ออก)'] || 0);
+                      const isAdd = amount > 0;
+                      return (
+                        <div key={i} style={{ padding: '1rem', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', borderLeft: `4px solid ${isAdd ? 'var(--success)' : 'var(--danger)'}` }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                            <strong>{log.product_name || log['ชื่อสินค้า'] || log['ชื่อ'] || '-'}</strong>
+                            <span style={{ fontWeight: 'bold', color: isAdd ? 'var(--success)' : 'var(--danger)' }}>
+                              {isAdd ? '+' : ''}{amount}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            <span>{log.type || log['ประเภทรายการ']}</span>
+                            <span>{new Date(log.date || log['วันที่'] || log['วันที่ทำรายการ'] || new Date()).toLocaleString('th-TH')}</span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Database, Settings, FileText, Moon, Sun, Bot, Package, LogOut, FileSignature, History, EyeOff, KanbanSquare } from 'lucide-react';
+import { LayoutDashboard, Database, Settings, FileText, Moon, Sun, Bot, Package, LogOut, FileSignature, History, EyeOff, KanbanSquare, Truck, PackageCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, user, onLogout }) {
@@ -92,6 +92,16 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
           </button>
         )}
 
+        {canAccess('quote') && (
+          <button 
+            className={`nav-item ${currentTab === 'so_tracking' ? 'active' : ''}`}
+            onClick={() => setCurrentTab('so_tracking')}
+          >
+            <PackageCheck size={20} />
+            <span>ติดตามสถานะ SO</span>
+          </button>
+        )}
+
         {canAccess('stock') && (
           <button 
             className={`nav-item ${currentTab === 'stock' ? 'active' : ''}`}
@@ -101,6 +111,17 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
             <span>จัดการสต็อกสินค้า</span>
           </button>
         )}
+        
+        {canAccess('stock') && (
+          <button 
+            className={`nav-item ${currentTab === 'fulfillment' ? 'active' : ''}`}
+            onClick={() => setCurrentTab('fulfillment')}
+          >
+            <Truck size={20} />
+            <span>รายการรอจัดส่ง (คลัง)</span>
+          </button>
+        )}
+
         {canAccess('database') && (
           <button 
             className={`nav-item ${currentTab === 'database' ? 'active' : ''}`}

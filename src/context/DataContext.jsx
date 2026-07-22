@@ -6,6 +6,10 @@ export function DataProvider({ children }) {
   const [customers, setCustomers] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [products, setProducts] = useState([]);
+  const [stockData, setStockData] = useState([]);
+  const [stockLogs, setStockLogs] = useState([]);
+  const [salesSO, setSalesSO] = useState([]);
+  const [subSalesSO, setSubSalesSO] = useState([]);
   const [pipelineData, setPipelineData] = useState([]);
   const [settings, setSettings] = useState({});
   const [isDataLoaded, setIsDataLoaded] = useState(false);
@@ -18,13 +22,17 @@ export function DataProvider({ children }) {
       const n8nUrl = s.n8nUrl || '';
       const localProfile = JSON.parse(localStorage.getItem('companyProfile') || '{}');
       
-      // เราใช้ Promise.all เพื่อยิง API ทั้ง 5 ตัวพร้อมกัน
-      const [custRes, empRes, prodRes, pipeRes, setRes] = await Promise.all([
+      // เราใช้ Promise.all เพื่อยิง API ทั้งหมดพร้อมกัน
+      const [custRes, empRes, prodRes, pipeRes, setRes, stockRes, logRes, soRes, subSoRes] = await Promise.all([
         fetch(`${n8nUrl}/webhook/db-read?sheet=customer&t=${Date.now()}`).catch(() => null),
         fetch(`${n8nUrl}/webhook/db-read?sheet=empolyee&t=${Date.now()}`).catch(() => null),
         fetch(`${n8nUrl}/webhook/db-read?sheet=product&t=${Date.now()}`).catch(() => null),
         fetch(`${n8nUrl}/webhook/db-read?sheet=pipeline&t=${Date.now()}`).catch(() => null),
-        fetch(`${n8nUrl}/webhook/settings?t=${Date.now()}`).catch(() => null)
+        fetch(`${n8nUrl}/webhook/settings?t=${Date.now()}`).catch(() => null),
+        fetch(`${n8nUrl}/webhook/db-read?sheet=stock&t=${Date.now()}`).catch(() => null),
+        fetch(`${n8nUrl}/webhook/db-read?sheet=Stock_Log&t=${Date.now()}`).catch(() => null),
+        fetch(`${n8nUrl}/webhook/db-read?sheet=sales_so&t=${Date.now()}`).catch(() => null),
+        fetch(`${n8nUrl}/webhook/db-read?sheet=sub_sales_so&t=${Date.now()}`).catch(() => null)
       ]);
 
       const safeJson = async (res) => {
@@ -77,6 +85,22 @@ export function DataProvider({ children }) {
         setProducts(parseN8nData(await safeJson(prodRes)));
       }
 
+      if (stockRes && stockRes.ok) {
+        setStockData(parseN8nData(await safeJson(stockRes)));
+      }
+
+      if (logRes && logRes.ok) {
+        setStockLogs(parseN8nData(await safeJson(logRes)));
+      }
+
+      if (soRes && soRes.ok) {
+        setSalesSO(parseN8nData(await safeJson(soRes)));
+      }
+
+      if (subSoRes && subSoRes.ok) {
+        setSubSalesSO(parseN8nData(await safeJson(subSoRes)));
+      }
+
       if (pipeRes && pipeRes.ok) {
         setPipelineData(parseN8nData(await safeJson(pipeRes)));
       }
@@ -110,7 +134,7 @@ export function DataProvider({ children }) {
   const refreshData = () => fetchAllData();
 
   return (
-    <DataContext.Provider value={{ customers, employees, products, pipelineData, settings, isDataLoaded, refreshData }}>
+    <DataContext.Provider value={{ customers, employees, products, stockData, stockLogs, salesSO, subSalesSO, pipelineData, settings, isDataLoaded, refreshData }}>
       {children}
     </DataContext.Provider>
   );

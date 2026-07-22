@@ -9,7 +9,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
   const { auth, canAccess } = useAuth();
   const [mode, setMode] = useState('manual'); // 'ai' or 'manual'
   const [loading, setLoading] = useState(false);
-  const { customers, employees, products: rawProducts, settings, isDataLoaded } = useData();
+  const { customers, employees, products: rawProducts, stockData, settings, isDataLoaded } = useData();
   const [aiPrompt, setAiPrompt] = useState('');
   
   const productsList = React.useMemo(() => {
@@ -292,7 +292,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
         id: quoteData.quotation_no,
         customerName: quoteData.customer?.name || '-',
         totalAmount: quoteData.total || 0,
-        status: 'Pending',
+        status: 'เสนอราคา',
         created_by: auth?.user?.name,
         saved_at: new Date().toISOString()
       };
@@ -307,109 +307,119 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
       
       Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกใบเสนอราคาไปยังส่วนกลางเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
     } catch (err) {
-      console.log('Error saving to n8n', err);
-      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'ไม่สามารถบันทึกไปยังฐานข้อมูลส่วนกลางได้ (อาจต้องรอ n8n อัปเดตชีตใหม่)', timer: 3000, showConfirmButton: false });
-    } finally {
-      setLoading(false);
+      console.log('Error saving ');
     }
   };
 
-  const saveAndDeductStock = async () => {
-    try {
-      if (!quoteData.items || quoteData.items.length === 0) return;
-      
-      const confirm = await Swal.fire({
-        title: 'ยืนยันปิดการขาย & ตัดสต๊อก',
-        text: 'ระบบจะทำการบันทึกใบสั่งขายนี้และทำการตัดสต๊อกสินค้าทันที คุณแน่ใจหรือไม่?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#10b981', // green
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'ยืนยัน, ตัดสต๊อกเลย'
-      });
+  const validateForm = () => {
+    if (!quoteData.customer?.name && !quoteData.customerName) {
+      Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุชื่อลูกค้า', 'warning');
+      return false;
+    }
+    if (!quoteData.items || quoteData.items.length === 0 || !quoteData.items[0].description) {
+      Swal.fire('ข้อมูลไม่ครบ', 'กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ', 'warning');
+      return false;
+    }
+    return true;
+  };
 
-      if (!confirm.isConfirmed) return;
+  const handleCloseSale = async () => {
+    if (!validateForm()) return;
+    
+    const result = await Swal.fire({
+      title: 'ยืนยันการปิดการขาย',
+      text: 'ระบบจะสร้างใบสั่งขาย (SO) และส่งรายการไปที่คลังสินค้าเพื่อเตรียมจัดส่ง',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'ยืนยัน & สร้าง SO',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: 'var(--success)'
+    });
 
+    if (result.isConfirmed) {
       setLoading(true);
-      const s = getSettings();
-      const n8nUrl = s.n8nUrl || '';
-
-      // 1. Loop through items to deduct stock
-      let deductionLogs = [];
-      for (const item of quoteData.items) {
-        if (!item.description) continue;
+      try {
+        const s = getSettings();
+        const n8nUrl = s.n8nUrl || '';
         
-        // Find raw product to get row_number
-        let rawProductsArray = [];
-        if (Array.isArray(rawProducts) && rawProducts.length > 0 && rawProducts[0]?.json) {
-          rawProductsArray = rawProducts.map(i => i.json);
-        } else if (Array.isArray(rawProducts)) {
-          rawProductsArray = rawProducts;
-        }
-
-        const prod = rawProductsArray.find(p => (p['ชื่อ'] || p['ชื่อสินค้า'] || p['ProductName'] || p.name || '') === item.description);
+        const soNumber = `SO-${Date.now()}`;
         
-        if (prod) {
-          const rowNum = prod._rawRowNumber || prod.row_number || prod.rowNumber;
-          if (rowNum) {
-            const stockKey = Object.keys(prod).find(k => ['คงเหลือ', 'จำนวน', 'ยอดคงเหลือ', 'Qty', 'Quantity', 'จำนวนคงเหลือ'].includes(k)) || 'คงเหลือ';
-            const currentStock = Number(prod[stockKey]) || 0;
-            const qtyToDeduct = Number(item.quantity) || 0;
-            const newStock = currentStock - qtyToDeduct;
+        // 1. Create SO Header (sales_so)
+        await fetch(`${n8nUrl}/webhook/db-write`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'insert',
+            sheet: 'sales_so',
+            data: {
+              id: soNumber,
+              customer_name: quoteData.customerName,
+              total_amount: quoteData.grandTotal,
+              date: new Date().toISOString(),
+              status: 'รอจัดส่ง', // Pending
+              created_by: auth?.user?.name || 'System',
+              payment_term: quoteData.paymentTerm || '',
+              valid_until: quoteData.validUntil || ''
+            }
+          })
+        });
 
-            const payload = { ...prod, [stockKey]: newStock };
-            const idKey = Object.keys(payload).find(k => k.toLowerCase() === 'id' || k.includes('รหัส')) || 'id';
-
-            // Delete internal fields before sending
-            delete payload._rawRowNumber; delete payload.row_number; delete payload.rowNumber;
-            delete payload._action; delete payload._sheet; delete payload._idKey;
-
-            await fetch(`${n8nUrl}/webhook/db-write`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                action: 'update', 
-                sheet: 'product', 
-                data: payload,
-                idKey: idKey,
-                row_number: rowNum
-              })
-            }).catch(e => console.error("Failed to deduct stock for", item.description, e));
-
-            deductionLogs.push(`${item.description} (-${qtyToDeduct})`);
-          }
+        // 2. Create SO Details (sub_sales_so)
+        for (const item of quoteData.items) {
+          await fetch(`${n8nUrl}/webhook/db-write`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'insert',
+              sheet: 'sub_sales_so',
+              data: {
+                id: `SUB-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                so_id: soNumber,
+                product_name: item.description,
+                product_code: item.code || '',
+                quantity: Number(item.quantity) || 0,
+                unit: item.unit || 'ชิ้น',
+                price: Number(item.unitPrice) || 0,
+                total: Number(item.total) || 0
+              }
+            })
+          });
         }
+        const newQuote = { 
+          ...quoteData, 
+          id: quoteData.quotation_no,
+          customerName: quoteData.customer?.name || '-',
+          totalAmount: quoteData.total || 0,
+          status: 'รอคลังจัดส่ง (SO)',
+          created_by: auth?.user?.name,
+          saved_at: new Date().toISOString(),
+          remark: `${quoteData.remark} (อ้างอิง: ${soNumber})`
+        };
+        
+        await fetch(`${n8nUrl}/webhook/quotations`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newQuote)
+        }).catch(e => console.log("Failed to save quotation", e));
+        
+        Swal.fire({
+          title: 'สำเร็จ!',
+          text: `สร้างใบสั่งขาย ${soNumber} เรียบร้อย! ส่งต่อให้คลังสินค้าเตรียมจัดส่งแล้ว`,
+          icon: 'success'
+        });
+        
+        setQuoteData({
+          customerName: '', address: '', taxId: '', date: new Date().toISOString().split('T')[0],
+          validUntil: '', paymentTerm: '', items: [{ code: '', description: '', quantity: 1, unit: 'ชิ้น', unitPrice: 0, total: 0 }],
+          notes: '', subTotal: 0, taxAmount: 0, grandTotal: 0,
+          customer: {}
+        });
+        
+      } catch (err) {
+        console.error("Error creating SO", err);
+      } finally {
+        setLoading(false);
       }
-
-      // 2. Save Quotation / Sales Order
-      const newQuote = { 
-        ...quoteData, 
-        id: quoteData.quotation_no,
-        customerName: quoteData.customer?.name || '-',
-        totalAmount: quoteData.total || 0,
-        status: 'Closed Won', // เปลี่ยนสถานะเป็นปิดการขาย
-        created_by: auth?.user?.name,
-        saved_at: new Date().toISOString(),
-        remark: `${quoteData.remark} (ตัดสต๊อกแล้ว: ${deductionLogs.join(', ')})`
-      };
-      
-      await fetch(`${n8nUrl}/webhook/quotations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newQuote)
-      }).catch(e => console.log("Failed to save quotation", e));
-      
-      Swal.fire({ 
-        icon: 'success', 
-        title: 'ปิดการขายสำเร็จ!', 
-        text: `ตัดสต๊อกเรียบร้อยแล้ว:\n${deductionLogs.join('\n')}`, 
-      });
-
-    } catch (err) {
-      console.log('Error deducting stock', err);
-      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'เกิดข้อผิดพลาดในการตัดสต๊อก' });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -580,10 +590,10 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
             <button 
               className="btn-primary" 
               style={{ flex: 1.2, justifyContent: 'center', backgroundColor: '#10b981', color: 'white', border: 'none' }} 
-              onClick={saveAndDeductStock}
+              onClick={handleCloseSale}
               disabled={loading || !quoteData.customer || quoteData.items.length === 0}
             >
-              <CheckCircle size={18} /> ปิดการขาย & ตัดสต๊อก
+              <CheckCircle size={18} /> ปิดการขาย & สร้างใบสั่งขาย (SO)
             </button>
           </div>
         </div>
