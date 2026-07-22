@@ -171,6 +171,18 @@ export default function Settings() {
           <Save size={18} /> บันทึกการตั้งค่า
         </button>
       </div>
+      
+      {/* Secret Mode Toggle */}
+      <div style={{ marginTop: '4rem', opacity: 0.03, display: 'flex', justifyContent: 'center', transition: 'opacity 0.3s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '1'} onMouseLeave={(e) => e.currentTarget.style.opacity = '0.03'} className="no-print">
+        <label style={{ cursor: 'pointer', fontSize: '12px' }}>
+          <input type="checkbox" onChange={(e) => {
+            if (e.target.checked) localStorage.setItem('secretMode', '1');
+            else localStorage.removeItem('secretMode');
+            window.dispatchEvent(new Event('secretModeToggle'));
+          }} defaultChecked={localStorage.getItem('secretMode') === '1'} />
+          {' Unlock Developer Features'}
+        </label>
+      </div>
     </div>
   );
 }

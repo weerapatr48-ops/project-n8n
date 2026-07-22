@@ -21,6 +21,7 @@ const SHEETS_CONFIG = [
   { id: 'Users', label: 'จัดการผู้ใช้งาน (Users)', readEndpoint: '/webhook/db-read?sheet=Users', roles: ['admin'] },
   { id: 'empolyee', label: 'รายชื่อพนักงาน (Employees)', readEndpoint: '/webhook/db-read?sheet=empolyee', roles: ['admin'] },
   { id: 'Quotations', label: 'ใบเสนอราคา (Quotations)', readEndpoint: '/webhook/db-read?sheet=Quotations', roles: ['admin', 'manager', 'sale'] },
+  { id: 'pipeline', label: 'CRM Pipeline (Deals)', readEndpoint: '/webhook/db-read?sheet=pipeline', roles: ['admin', 'manager', 'sale'] },
   { id: 'sales_so', label: 'Sales Order (SO)', readEndpoint: '/webhook/db-read?sheet=sales_so', roles: ['admin', 'manager'] },
   { id: 'precher_po', label: 'Purchase Order (PO)', readEndpoint: '/webhook/db-read?sheet=precher_po', roles: ['admin', 'manager'] },
   { id: 'Settings', label: 'ตั้งค่าระบบอื่นๆ (Settings DB)', readEndpoint: '/webhook/db-read?sheet=Settings', roles: ['admin'] },

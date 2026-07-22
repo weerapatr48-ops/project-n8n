@@ -8,6 +8,7 @@ import Dashboard from './components/Dashboard';
 import QuotationMaker from './components/QuotationMaker';
 import QuotationHistory from './components/QuotationHistory';
 import StockManager from './components/StockManager';
+import Pipeline from './components/Pipeline';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
@@ -52,6 +53,7 @@ function MainApp() {
       
       <main className="main-content">
         {currentTab === 'dashboard' && <Dashboard />}
+        {currentTab === 'pipeline' && <Pipeline setCurrentTab={setCurrentTab} setAiQuotationData={setAiQuotationData} />}
         {currentTab === 'quote_maker' && <QuotationMaker aiQuotationData={aiQuotationData} setAiQuotationData={setAiQuotationData} />}
         {currentTab === 'quote_history' && <QuotationHistory setCurrentTab={setCurrentTab} setAiQuotationData={setAiQuotationData} />}
         {currentTab === 'stock' && <StockManager />}

@@ -38,6 +38,7 @@ export function AuthProvider({ children }) {
     const role = auth?.user?.role;
     const rules = {
       dashboard:  ['admin', 'manager', 'user', 'sale', 'stock'],
+      pipeline:   ['admin', 'manager', 'sale'],
       quote:      ['admin', 'manager', 'user', 'sale'],
       ai:         ['admin', 'manager', 'user', 'sale', 'stock'],
       database:   ['admin', 'manager', 'user', 'sale', 'stock'],

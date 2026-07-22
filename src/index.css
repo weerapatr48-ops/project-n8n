@@ -141,7 +141,9 @@ body.dark {
 
 .main-content {
   flex: 1;
+  min-width: 0; /* Prevents flex child from stretching beyond screen */
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 2rem;
   background-color: var(--bg-primary);
   transition: background-color var(--transition-normal);

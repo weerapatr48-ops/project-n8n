@@ -1,10 +1,37 @@
-import React, { useState } from 'react';
-import { LayoutDashboard, Database, Settings, FileText, Moon, Sun, Bot, Package, LogOut, FileSignature, History } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LayoutDashboard, Database, Settings, FileText, Moon, Sun, Bot, Package, LogOut, FileSignature, History, EyeOff, KanbanSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, user, onLogout }) {
   const { canAccess } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [secretMode, setSecretMode] = useState(() => localStorage.getItem('secretMode') === '1');
+  const [destroyEyes, setDestroyEyes] = useState(false);
+
+  useEffect(() => {
+    const handleSecretMode = () => setSecretMode(localStorage.getItem('secretMode') === '1');
+    window.addEventListener('secretModeToggle', handleSecretMode);
+    return () => window.removeEventListener('secretModeToggle', handleSecretMode);
+  }, []);
+
+  useEffect(() => {
+    let interval;
+    const props = ['--bg-primary', '--bg-secondary', '--bg-tertiary', '--text-primary', '--accent-primary', '--border-color', '--glass-bg'];
+    
+    if (destroyEyes) {
+      interval = setInterval(() => {
+        const randomColor = () => `rgb(${Math.floor(Math.random()*256)}, ${Math.floor(Math.random()*256)}, ${Math.floor(Math.random()*256)})`;
+        props.forEach(p => document.body.style.setProperty(p, randomColor()));
+      }, 150); 
+    } else {
+      props.forEach(p => document.body.style.removeProperty(p));
+    }
+    
+    return () => {
+      clearInterval(interval);
+      props.forEach(p => document.body.style.removeProperty(p));
+    };
+  }, [destroyEyes]);
 
   return (
     <>
@@ -22,6 +49,16 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
           >
             <LayoutDashboard size={20} />
             <span>แดชบอร์ด</span>
+          </button>
+        )}
+
+        {canAccess('pipeline') && (
+          <button 
+            className={`nav-item ${currentTab === 'pipeline' ? 'active' : ''}`}
+            onClick={() => setCurrentTab('pipeline')}
+          >
+            <KanbanSquare size={20} />
+            <span>Sales Pipeline</span>
           </button>
         )}
 
@@ -109,6 +146,39 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
               }} />
             </div>
           </div>
+          
+          {secretMode && (
+            <div 
+              className="nav-item" 
+              onClick={() => setDestroyEyes(!destroyEyes)} 
+              style={{ justifyContent: 'space-between', cursor: 'pointer', color: destroyEyes ? 'var(--danger)' : 'var(--text-secondary)' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <EyeOff size={20} />
+                <span style={{ fontWeight: 800 }}>ทำลายดวงตา</span>
+              </div>
+              <div style={{
+                width: '40px',
+                height: '22px',
+                background: destroyEyes ? 'var(--danger)' : 'var(--text-muted)',
+                borderRadius: '20px',
+                position: 'relative',
+                transition: 'background 0.3s'
+              }}>
+                <div style={{
+                  width: '18px',
+                  height: '18px',
+                  background: '#fff',
+                  borderRadius: '50%',
+                  position: 'absolute',
+                  top: '2px',
+                  left: destroyEyes ? '20px' : '2px',
+                  transition: 'left 0.1s',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                }} />
+              </div>
+            </div>
+          )}
           
           {canAccess('settings') && (
             <button 
