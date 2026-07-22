@@ -10,13 +10,14 @@ export default function Fulfillment() {
   const [expandedId, setExpandedId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fulfilledIds, setFulfilledIds] = useState([]);
 
   // Normalize data
   let soHeaders = [];
   if (Array.isArray(salesSO) && salesSO.length > 0 && salesSO[0]?.json) {
     soHeaders = salesSO.map(s => ({ ...s.json, _rawRowNumber: s.row_number || s.rowNumber }));
   } else if (Array.isArray(salesSO)) {
-    soHeaders = salesSO.map((s, index) => ({ ...s, _rawRowNumber: s.row_number || s.rowNumber || (index + 2) }));
+    soHeaders = salesSO.map((s, index) => ({ ...s, _rawRowNumber: s._rawRowNumber || s.row_number || s.rowNumber || (index + 2) }));
   }
 
   let soDetails = [];
@@ -28,7 +29,7 @@ export default function Fulfillment() {
 
   // Filter pending SOs
   const pendingSOs = soHeaders.filter(so => 
-    so.status === 'รอจัดส่ง' || so.status === 'Pending'
+    (so.status === 'รอจัดส่ง' || so.status === 'Pending') && !fulfilledIds.includes(so.id)
   ).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
   const filteredSOs = pendingSOs.filter(so => 
@@ -37,7 +38,16 @@ export default function Fulfillment() {
   );
 
   const getItemsForSO = (soId) => {
-    return soDetails.filter(d => d.so_id === soId);
+    return soDetails.filter(d => d.so_id === soId).map(item => {
+      let code = item.product_code;
+      if (!code || code === '-') {
+        const found = masterProducts.find(p => (p['ชื่อ'] || p['ชื่อสินค้า'] || p.name) === item.product_name);
+        if (found) {
+          code = found['รหัส'] || found['รหัสสินค้า'] || found.code || '-';
+        }
+      }
+      return { ...item, product_code: code };
+    });
   };
 
   const handleFulfill = async (so) => {
@@ -141,32 +151,24 @@ export default function Fulfillment() {
         }
 
         // 2. Update SO status to 'จัดส่งเรียบร้อย'
-        let rowNum = so._rawRowNumber || so.row_number || so.rowNumber;
-        if (!rowNum && Array.isArray(salesSO)) {
-          const idx = salesSO.findIndex(s => (s.json?.id || s.id) === so.id);
-          if (idx >= 0) rowNum = idx + 2;
-        }
-
-        if (rowNum) {
-          const payload = { ...so, status: 'จัดส่งเรียบร้อย' };
-          delete payload._rawRowNumber; delete payload.row_number; delete payload.rowNumber;
-          await fetch(`${n8nUrl}/webhook/db-write`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'update', sheet: 'sales_so', data: payload, idKey: 'id', row_number: rowNum })
-          });
-        } else {
-          console.warn("Could not find rowNum for SO, updating by ID might fail if webhook doesn't support it");
-          const payload = { ...so, status: 'จัดส่งเรียบร้อย' };
-          await fetch(`${n8nUrl}/webhook/db-write`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'update', sheet: 'sales_so', data: payload, idKey: 'id' })
-          });
-        }
+        const payload = { ...so, status: 'จัดส่งเรียบร้อย' };
+        const correctRowNum = so._rawRowNumber;
+        delete payload._rawRowNumber;
+        
+        await fetch(`${n8nUrl}/webhook/db-write`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update', sheet: 'sales_so', data: payload, idKey: 'id', row_number: correctRowNum })
+        });
 
         Swal.fire('สำเร็จ', `ตัดสต็อกและจัดส่ง ${so.id} เรียบร้อยแล้ว`, 'success');
-        refreshData();
+        setFulfilledIds(prev => [...prev, so.id]);
+        
+        // Wait 1.5 seconds for Google Sheets to sync before fetching again
+        setTimeout(() => {
+          refreshData();
+        }, 1500);
+
       } catch (err) {
         console.error(err);
         Swal.fire('ผิดพลาด', 'ไม่สามารถทำรายการได้', 'error');

@@ -550,6 +550,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
                       updateItem(index, 'description', val);
                       const found = productsList.find(p => p.name === val);
                       if (found) {
+                        updateItem(index, 'code', found.code);
                         updateItem(index, 'unit_price', found.price);
                         updateItem(index, 'unit', found.unit);
                       }

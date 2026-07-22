@@ -307,6 +307,7 @@ export default function DatabaseManager() {
         Swal.fire({ icon: 'success', title: 'สำเร็จ', text: isInsert ? 'เพิ่มข้อมูลเรียบร้อยแล้ว' : 'แก้ไขข้อมูลเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
         setEditingId(null);
         fetchData(); 
+        setTimeout(() => refreshData(), 1000);
       } else {
         const errorText = await response.text();
         console.error('DB Write Error:', errorText);
@@ -338,8 +339,10 @@ export default function DatabaseManager() {
             body: JSON.stringify({ action: 'delete', sheet: activeDb, data: { row_number: row._rawRowNumber } })
           });
           
-          if (response.ok) fetchData();
-          else Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ' });
+          if (response.ok) {
+            fetchData();
+            setTimeout(() => refreshData(), 1000);
+          } else Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ' });
         } catch (error) {
           Swal.fire({ icon: 'error', title: 'เชื่อมต่อไม่ได้', text: error.message });
         } finally {
@@ -354,13 +357,13 @@ export default function DatabaseManager() {
   }
 
   return (
-    <div style={{ maxWidth: '100%', margin: '0 auto', padding: '1rem 0', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ maxWidth: '100%', minWidth: 0, margin: '0 auto', padding: '1rem 0', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <style>{`
         .minimal-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; padding: 0 0.5rem; }
         .minimal-title { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin: 0 0 0.2rem 0; letter-spacing: -0.02em; }
         .minimal-subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
-        .minimal-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; flex-direction: column; flex: 1; }
-        .minimal-table-wrapper { overflow-x: auto; overflow-y: auto; flex: 1; scrollbar-width: thin; }
+        .minimal-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; flex-direction: column; flex: 1; min-width: 0; }
+        .minimal-table-wrapper { overflow-x: auto; overflow-y: auto; flex: 1; scrollbar-width: thin; min-width: 0; width: 100%; }
         .minimal-table { width: max-content; min-width: 100%; border-collapse: collapse; text-align: left; }
         .minimal-table th { background: var(--bg-primary); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; padding: 1rem 1.2rem; font-weight: 600; border-bottom: 1px solid var(--border-color); white-space: nowrap; position: sticky; top: 0; z-index: 10; }
         .minimal-table td { padding: 0.8rem 1.2rem; font-size: 0.9rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); white-space: nowrap; background: var(--bg-secondary); }

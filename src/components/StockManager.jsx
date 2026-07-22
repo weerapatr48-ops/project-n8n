@@ -168,7 +168,7 @@ export default function StockManager() {
   if (!canAccess('stock')) return null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h1 className="title-lg">จัดการสต็อกสินค้า</h1>
       </div>

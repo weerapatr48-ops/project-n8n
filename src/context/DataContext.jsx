@@ -50,8 +50,14 @@ export function DataProvider({ children }) {
         if (!result) return [];
         let rawData = [];
         if (Array.isArray(result)) {
-          if (result.length > 0 && result[0]?.json) rawData = result.map(item => item.json);
-          else rawData = result;
+          if (result.length > 0 && result[0]?.json) {
+            rawData = result.map((item, index) => ({
+              ...item.json,
+              _rawRowNumber: item.row_number || item.rowNumber || index + 2
+            }));
+          } else {
+            rawData = result;
+          }
         } else if (typeof result === 'object' && !result.error) {
           const keys = Object.keys(result);
           if (keys.length > 0 && keys.every(k => !isNaN(k))) rawData = keys.map(k => result[k]);
@@ -61,7 +67,7 @@ export function DataProvider({ children }) {
         
         // Add _rawRowNumber so updates can find the right row in Google Sheets
         const mappedData = rawData.map((row, index) => {
-          return { ...row, _rawRowNumber: row.row_number || row.rowNumber || index + 2 };
+          return { ...row, _rawRowNumber: row._rawRowNumber || row.row_number || row.rowNumber || index + 2 };
         });
 
         return filterEmpty(mappedData);
@@ -128,6 +134,13 @@ export function DataProvider({ children }) {
 
   useEffect(() => {
     fetchAllData();
+    
+    // ตั้งเวลาให้ดึงข้อมูลใหม่ทุกๆ 30 วินาที (Auto-refresh)
+    const intervalId = setInterval(() => {
+      fetchAllData();
+    }, 30000);
+
+    return () => clearInterval(intervalId);
     // eslint-disable-next-line
   }, []);
 

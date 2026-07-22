@@ -3,7 +3,7 @@ import { useData } from '../context/DataContext';
 import { Search, ChevronDown, ChevronUp, PackageCheck, Clock, FileText, Download, Eye } from 'lucide-react';
 
 export default function SOTracking() {
-  const { salesSO, subSalesSO } = useData();
+  const { salesSO, subSalesSO, products: masterProducts } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState(null);
 
@@ -31,7 +31,16 @@ export default function SOTracking() {
   );
 
   const getItemsForSO = (soId) => {
-    return soDetails.filter(d => d.so_id === soId);
+    return soDetails.filter(d => d.so_id === soId).map(item => {
+      let code = item.product_code;
+      if (!code || code === '-') {
+        const found = masterProducts.find(p => (p['ชื่อ'] || p['ชื่อสินค้า'] || p.name) === item.product_name);
+        if (found) {
+          code = found['รหัส'] || found['รหัสสินค้า'] || found.code || '-';
+        }
+      }
+      return { ...item, product_code: code };
+    });
   };
 
   const totalSOs = soHeaders.length;
@@ -40,7 +49,7 @@ export default function SOTracking() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 className="title-lg" style={{ fontSize: '1.8rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <PackageCheck size={28} color="var(--accent-primary)" /> ติดตามสถานะใบสั่งขาย (SO)
@@ -49,40 +58,40 @@ export default function SOTracking() {
         </div>
       </div>
 
-      <div className="grid-3" style={{ marginBottom: '2rem', gap: '1.5rem' }}>
-        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem' }}>
-          <div style={{ padding: '1rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '12px', color: '#3b82f6' }}>
-            <FileText size={32} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '1rem', gap: '1rem' }}>
+        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.25rem' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '12px', color: '#3b82f6' }}>
+            <FileText size={28} />
           </div>
           <div>
-            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>ใบสั่งขายทั้งหมด</p>
-            <h2 style={{ margin: 0, fontSize: '2rem', color: 'var(--text-primary)' }}>{totalSOs} <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>รายการ</span></h2>
+            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>ใบสั่งขายทั้งหมด</p>
+            <h2 style={{ margin: 0, fontSize: '1.75rem', color: 'var(--text-primary)' }}>{totalSOs} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>รายการ</span></h2>
           </div>
         </div>
         
-        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem' }}>
-          <div style={{ padding: '1rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderRadius: '12px', color: '#f59e0b' }}>
-            <Clock size={32} />
+        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.25rem' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderRadius: '12px', color: '#f59e0b' }}>
+            <Clock size={28} />
           </div>
           <div>
-            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>รอคลังจัดส่ง</p>
-            <h2 style={{ margin: 0, fontSize: '2rem', color: 'var(--text-primary)' }}>{pendingSOs} <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>รายการ</span></h2>
+            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>รอคลังจัดส่ง</p>
+            <h2 style={{ margin: 0, fontSize: '1.75rem', color: 'var(--text-primary)' }}>{pendingSOs} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>รายการ</span></h2>
           </div>
         </div>
 
-        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem' }}>
-          <div style={{ padding: '1rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', color: 'var(--success)' }}>
-            <PackageCheck size={32} />
+        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.25rem' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', color: 'var(--success)' }}>
+            <PackageCheck size={28} />
           </div>
           <div>
-            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>จัดส่งเรียบร้อย</p>
-            <h2 style={{ margin: 0, fontSize: '2rem', color: 'var(--text-primary)' }}>{completedSOs} <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>รายการ</span></h2>
+            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>จัดส่งเรียบร้อย</p>
+            <h2 style={{ margin: 0, fontSize: '1.75rem', color: 'var(--text-primary)' }}>{completedSOs} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>รายการ</span></h2>
           </div>
         </div>
       </div>
 
-      <div className="glass-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+      <div className="glass-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <div className="input-wrapper" style={{ width: '350px', position: 'relative' }}>
             <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input 
@@ -102,7 +111,7 @@ export default function SOTracking() {
               <p>ไม่พบข้อมูลใบสั่งขาย</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
               {filteredSOs.map((so) => {
                 const isExpanded = expandedId === so.id;
                 const items = getItemsForSO(so.id);
@@ -113,70 +122,71 @@ export default function SOTracking() {
                     background: 'var(--bg-tertiary)', 
                     borderRadius: 'var(--radius-md)', 
                     border: '1px solid var(--border-color)',
-                    overflow: 'hidden'
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                    transition: 'transform 0.2s, box-shadow 0.2s'
                   }}>
-                    {/* Header */}
+                    {/* Card Content */}
                     <div 
-                      style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', backgroundColor: isCompleted ? 'rgba(16, 185, 129, 0.02)' : 'transparent', flexWrap: 'wrap', gap: '1rem' }}
+                      style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', cursor: 'pointer', backgroundColor: isCompleted ? 'rgba(16, 185, 129, 0.03)' : 'transparent' }}
                       onClick={() => setExpandedId(isExpanded ? null : so.id)}
                     >
-                      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: '120px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
                           <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>เลขที่บิล (SO)</span>
-                          <strong style={{ fontSize: '1.1rem', color: 'var(--accent-primary)' }}>{so.id}</strong>
+                          <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--accent-primary)' }}>{so.id}</div>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: '150px', flex: 1 }}>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>ลูกค้า</span>
-                          <strong style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{so.customer_name}</strong>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: '100px' }}>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>ยอดรวม</span>
-                          <strong style={{ color: 'var(--text-primary)' }}>฿{new Intl.NumberFormat('th-TH', { minimumFractionDigits: 2 }).format(so.total_amount || 0)}</strong>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: '100px' }}>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>วันที่สร้าง</span>
-                          <span>{new Date(so.date).toLocaleDateString('th-TH')}</span>
-                        </div>
-                      </div>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <span className={`badge ${isCompleted ? 'badge-success' : 'badge-warning'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.8rem' }}>
+                        <span className={`badge ${isCompleted ? 'badge-success' : 'badge-warning'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.3rem 0.6rem' }}>
                           {isCompleted ? <PackageCheck size={14} /> : <Clock size={14} />} 
                           {so.status || 'รอจัดส่ง'}
                         </span>
-                        {isExpanded ? <ChevronUp size={20} color="var(--text-muted)" /> : <ChevronDown size={20} color="var(--text-muted)" />}
+                      </div>
+                      
+                      <div>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>ลูกค้า</span>
+                        <div style={{ fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{so.customer_name}</div>
+                      </div>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
+                        <div>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>ยอดรวม</span>
+                          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>฿{new Intl.NumberFormat('th-TH', { minimumFractionDigits: 2 }).format(so.total_amount || 0)}</div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>วันที่สร้าง</span>
+                          <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{new Date(so.date).toLocaleDateString('th-TH')}</div>
+                        </div>
+                      </div>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                         {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                       </div>
                     </div>
 
                     {/* Details (Expanded) */}
                     {isExpanded && (
-                      <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border-color)', background: 'var(--bg-primary)' }}>
-                        <h4 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>รายการสินค้า:</h4>
+                      <div style={{ padding: '1rem', borderTop: '1px solid var(--border-color)', background: 'var(--bg-primary)' }}>
+                        <h4 style={{ marginBottom: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>รายการสินค้า:</h4>
                         <div style={{ overflowX: 'auto' }}>
-                          <table className="data-table" style={{ marginBottom: '0', minWidth: '600px' }}>
+                          <table className="data-table" style={{ marginBottom: '0', minWidth: '400px', fontSize: '0.85rem' }}>
                             <thead>
                               <tr>
                                 <th>รหัสสินค้า</th>
                                 <th>ชื่อสินค้า</th>
-                                <th style={{ textAlign: 'right' }}>ราคา/หน่วย</th>
                                 <th style={{ textAlign: 'right' }}>จำนวน</th>
-                                <th>หน่วย</th>
-                                <th style={{ textAlign: 'right' }}>รวม</th>
                               </tr>
                             </thead>
                           <tbody>
                             {items.length > 0 ? items.map((item, idx) => (
                               <tr key={idx}>
                                 <td>{item.product_code || '-'}</td>
-                                <td>{item.product_name}</td>
-                                <td style={{ textAlign: 'right' }}>{new Intl.NumberFormat('th-TH').format(item.price || 0)}</td>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{item.quantity}</td>
-                                <td>{item.unit}</td>
-                                <td style={{ textAlign: 'right' }}>{new Intl.NumberFormat('th-TH').format(item.total || 0)}</td>
+                                <td style={{ whiteSpace: 'normal', minWidth: '150px' }}>{item.product_name}</td>
+                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{item.quantity} {item.unit}</td>
                               </tr>
                             )) : (
                               <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)' }}>
+                                <td colSpan="3" style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)' }}>
                                   ไม่พบข้อมูลรายการสินค้า
                                 </td>
                               </tr>
