@@ -22,7 +22,6 @@ const SHEETS_CONFIG = [
   { id: 'empolyee', label: 'รายชื่อพนักงาน (Employees)', readEndpoint: '/webhook/db-read?sheet=empolyee' },
   { id: 'sales_pr_header', label: 'ใบเสนอราคาหลัก (Sales PR Header)', readEndpoint: '/webhook/db-read?sheet=sales_pr_header' },
   { id: 'sales_pr_body', label: 'ใบเสนอราคาย่อย (Sales PR Body)', readEndpoint: '/webhook/db-read?sheet=sales_pr_body' },
-  { id: 'Settings', label: 'ตั้งค่าระบบอื่นๆ (Settings DB)', readEndpoint: '/webhook/db-read?sheet=Settings' },
 ];
 
 export default function DatabaseManager() {

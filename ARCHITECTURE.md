@@ -31,54 +31,57 @@ graph TD
 
 ```mermaid
 erDiagram
-    EMPLOYEES ||--o{ CUSTOMERS : "ดูแล"
-    EMPLOYEES ||--o{ QUOTATIONS : "สร้าง"
-    CUSTOMERS ||--o{ QUOTATIONS : "เป็นเจ้าของ"
-    QUOTATIONS ||--|{ QUOTATION_ITEMS : "มี"
-    PRODUCTS ||--o{ QUOTATION_ITEMS : "ถูกเลือก"
+    EMPLOYEE ||--o{ CUSTOMER : "ดูแล"
+    EMPLOYEE ||--o{ SALES_PR_HEADER : "สร้าง/แก้ไข"
+    CUSTOMER ||--o{ SALES_PR_HEADER : "เป็นเจ้าของ"
+    SALES_PR_HEADER ||--|{ SUB_SALES_PR : "มีรายการ"
+    PRODUCT ||--|| STOCK : "มีสต็อก"
+    PRODUCT ||--o{ SUB_SALES_PR : "ถูกเลือก"
 
-    EMPLOYEES {
-        string employee_id PK "รหัสพนักงาน (PIC)"
+    EMPLOYEE {
+        string employee_id PK "รหัสพนักงาน"
         string name "ชื่อ-นามสกุล"
-        string role "สิทธิ์ (admin, sale, stock)"
-        string password "รหัสผ่าน (Hash)"
     }
 
-    CUSTOMERS {
+    CUSTOMER {
         string customer_id PK "รหัสลูกค้า"
         string company_name "ชื่อบริษัท"
-        string tax_id "เลขผู้เสียภาษี"
-        string address "ที่อยู่"
-        string phone "เบอร์โทร"
-        string pic_id FK "รหัสพนักงานที่ดูแล (อ้างอิง EMPLOYEES)"
+        string tax_id "เลขประจำตัวผู้เสียภาษี"
+        string credit "เครดิต (เช่น 30 วัน)"
+        string contact_name "ชื่อผู้ติดต่อ"
+        string sub_district "ตำบล/แขวง"
+        string district "อำเภอ/เขต"
+        string province "จังหวัด"
+        string email "อีเมล"
+        string phone "เบอร์โทรศัพท์"
     }
 
-    PRODUCTS {
-        string product_id PK "รหัสสินค้า"
-        string name "ชื่อสินค้า"
-        string unit "หน่วย (เช่น ชิ้น, กล่อง)"
-        float unit_price "ราคาต่อหน่วย"
-        int stock_quantity "จำนวนคงเหลือในสต็อก"
+    PRODUCT {
+        string product_id PK "โค้ดสินค้า (Primary ID)"
+        string name "รายชื่อสินค้า"
+        string description "รายละเอียดสินค้า"
     }
 
-    QUOTATIONS {
-        string quotation_no PK "เลขที่ใบเสนอราคา (เช่น QT-2024-001)"
-        string customer_id FK "รหัสลูกค้า (อ้างอิง CUSTOMERS)"
-        string employee_id FK "รหัสพนักงาน (อ้างอิง EMPLOYEES)"
-        date issue_date "วันที่ออกเอกสาร"
-        float subtotal "ยอดก่อนภาษี"
-        float vat "ภาษีมูลค่าเพิ่ม 7%"
-        float total "ยอดสุทธิ"
-        string status "สถานะ (Draft, Sent, Approved, Rejected)"
+    STOCK {
+        string product_id PK, FK "โค้ดสินค้า (อ้างอิง PRODUCT)"
+        int quantity "จำนวนสินค้าคงเหลือ"
     }
 
-    QUOTATION_ITEMS {
-        string item_id PK "รหัสรายการ"
-        string quotation_no FK "เลขที่ใบเสนอราคา (อ้างอิง QUOTATIONS)"
-        string product_id FK "รหัสสินค้า (อ้างอิง PRODUCTS)"
-        int quantity "จำนวนที่เสนอขาย"
-        float unit_price "ราคาที่เสนอ (อาจให้ส่วนลดจากราคาปกติ)"
-        float total_price "ราคารวมของรายการนี้"
+    SALES_PR_HEADER {
+        string document_id PK "เลขที่เอกสาร"
+        string customer_id FK "รหัสลูกค้า (อ้างอิง CUSTOMER)"
+        string employee_id FK "รหัสพนักงานผู้สร้าง"
+        datetime created_at "วันที่/เวลาที่สร้าง"
+        datetime updated_at "วันที่/เวลาที่แก้ไขล่าสุด"
+        string updated_by "ชื่อผู้แก้ไขล่าสุด"
+    }
+
+    SUB_SALES_PR {
+        string item_id PK "รหัสรายการย่อย"
+        string document_id FK "เลขที่เอกสาร (อ้างอิง SALES_PR_HEADER)"
+        string product_id FK "รหัสสินค้า (อ้างอิง PRODUCT)"
+        int quantity "จำนวน"
+        float price "ราคา"
     }
 ```
 
@@ -86,19 +89,15 @@ erDiagram
 
 ## 3. Development Phases (แผนการพัฒนา)
 
-### Phase 1: Foundation & Security (สถานะ: กำลังปรับปรุง)
-- [x] สร้าง UI หน้าจอพื้นฐาน (React)
-- [x] เชื่อมต่อ n8n เบื้องต้น
-- [x] **Refactoring (เพิ่งทำ):** จัดการ Global State ด้วย `DataContext` เพื่อลด API Request (แก้ไขปัญหา N+1 Query)
-- [ ] **Pending:** ปรับปรุงระบบ Authentication ให้ปลอดภัย โดยให้ n8n เป็นคน Validate ข้อมูล ไม่ใช่เช็คที่ฝั่ง Client
+### Phase 1: Database Setup & AI Customer Extraction
+- [ ] **ปรับโครงสร้างฐานข้อมูล (Database):** เตรียมถังข้อมูลทั้ง 6 ถัง (Customer, Product, Stock, Employee, Sales PR, Sub Sales PR) ให้ตรงตามโครงสร้างใหม่
+- [ ] **AI Customer Parsing:** สร้างฟังก์ชัน + หน้า UI สำหรับกรอกข้อมูลลูกค้า โดยมีปุ่มให้ AI อ่านข้อความดิบแล้วจัดเรียงลงฟิลด์ต่างๆ (ชื่อ, ภาษี, ตำบล, อำเภอ, จังหวัด ฯลฯ) ให้อัตโนมัติ
+- [ ] **Authentication:** ทำระบบ Login อย่างง่ายแบบ Single Role (ทีมขาย) และเก็บข้อมูล User สำหรับใช้ใน Timestamp
 
-### Phase 2: Master Data Management (CRUD)
-- [ ] พัฒนาระบบเพิ่ม/ลบ/แก้ไข (Database Manager) ให้รองรับโครงสร้างตาราง Customers และ Products
-- [ ] จัดการระบบ Stock Manager ให้อัปเดตข้อมูล `stock_quantity` ได้จริง
+### Phase 2: Master Data Management (Product & Stock)
+- [ ] **Product & Stock Manager:** ทำระบบ CRUD สำหรับเพิ่มสินค้าและจัดการสต็อก โดยแยกระหว่างตาราง Product และ Stock ตามข้อกำหนด
 
-### Phase 3: Transaction & Logic
-- [ ] ปรับปรุงหน้า `QuotationMaker` ให้เวลาบันทึก (Save) มีการบันทึกลง 2 ตาราง คือ `QUOTATIONS` (หัวบิล) และ `QUOTATION_ITEMS` (หางบิล)
-- [ ] เมื่อใบเสนอราคาถูกเปลี่ยนสถานะเป็น Approved ให้ทำการหักยอด `stock_quantity` อัตโนมัติ
-
-### Phase 4: Analytics
-- [ ] สร้าง Dashboard ดึงข้อมูลจาก `QUOTATIONS` เพื่อสรุปยอดขายรายเดือน
+### Phase 3: Sales PR (Quotation) Core System
+- [ ] **สร้าง Sales PR:** ปรับปรุงหน้า `QuotationMaker` ให้รองรับการบันทึกข้อมูลแบบ 1-to-Many แยกลง `SALES_PR_HEADER` และ `SUB_SALES_PR`
+- [ ] **ระบบ Audit Trail:** ทุกครั้งที่มีการสร้างหรือแก้ไขเอกสาร จะต้องมีการประทับเวลา `created_at`, `updated_at`, และบันทึกชื่อผู้แก้ไข `updated_by`
+- [ ] **เชื่อมต่อสต็อก:** ระบบสามารถอัปเดต/ตัดสต็อกผ่านตาราง `STOCK` โดยอ้างอิงรหัสสินค้าจากตารางย่อย
