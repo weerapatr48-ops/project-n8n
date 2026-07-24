@@ -22,9 +22,9 @@ export default function Dashboard() {
     try {
       setLoading(true);
       const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-      const n8nUrl = settings.n8nUrl || '';
+      const ฐานข้อมูลUrl = settings.ฐานข้อมูลUrl || '';
 
-      const res = await fetch(`${n8nUrl}/webhook/dashboard`);
+      const res = await fetch(`\${GAS_URL}?sheet=Dashboard`);
       const json = await res.json();
       
       if (json && !json.error) {

@@ -71,7 +71,7 @@ export default function StockManager() {
     setLoading(true);
     try {
       const s = getSettings();
-      const n8nUrl = s.n8nUrl || '';
+      const ฐานข้อมูลUrl = s.ฐานข้อมูลUrl || '';
       const amount = Number(stockForm.amount);
       const isAdd = stockForm.type === 'add';
       const changeAmount = isAdd ? amount : -amount;
@@ -98,9 +98,9 @@ export default function StockManager() {
         delete payload._rawRowNumber; delete payload.row_number; delete payload.rowNumber;
         delete payload._action; delete payload._sheet; delete payload._idKey;
 
-        await fetch(`${n8nUrl}/webhook/db-write`, {
+        await fetch(GAS_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'update', sheet: 'stock', data: payload, idKey: idKey, row_number: rowNum })
         });
       } else {
@@ -123,17 +123,17 @@ export default function StockManager() {
           'วันที่รับเข้า': new Date().toISOString()
         };
 
-        await fetch(`${n8nUrl}/webhook/db-write`, {
+        await fetch(GAS_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'insert', sheet: 'stock', data: payload })
         });
       }
 
       // 2. Insert to Stock_Log
-      await fetch(`${n8nUrl}/webhook/db-write`, {
+      await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'insert',
           sheet: 'Stock_Log',

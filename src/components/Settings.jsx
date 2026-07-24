@@ -1,17 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Building2, Link as LinkIcon, Image as ImageIcon, RefreshCw } from 'lucide-react';
+import { Save, Building2, Link as LinkIcon, Image as ImageIcon, RefreshCw, Bot } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-const getN8nUrl = () => {
-  try {
-    const s = JSON.parse(localStorage.getItem('appSettings') || '{}');
-    return s.n8nUrl || '';
-  } catch {
-    return '';
-  }
-};
-
 export default function Settings() {
+  const [geminiApiKey, setGeminiApiKey] = useState('');
   const [settings, setSettings] = useState({
     companyName: '',
     companyTaxId: '',
@@ -20,16 +12,16 @@ export default function Settings() {
     companyLogo: ''
   });
   
-  const [n8nUrl, setN8nUrl] = useState('');
+
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // โหลด n8n URL และตั้งค่าจาก localStorage ก่อน
+  // โหลด ฐานข้อมูล URL และตั้งค่าจาก localStorage ก่อน
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem('appSettings') || '{}');
-      setN8nUrl(s.n8nUrl || '');
-      
+      setGeminiApiKey(s.geminiApiKey || '');
+
       const localProfile = JSON.parse(localStorage.getItem('companyProfile') || '{}');
       if (localProfile.companyName) {
         setSettings(prev => ({ ...prev, ...localProfile }));
@@ -37,16 +29,15 @@ export default function Settings() {
     } catch {}
   }, []);
 
-  // ดึงข้อมูลบริษัทจาก Google Sheets ผ่าน n8n
+  // ดึงข้อมูลบริษัทจาก Google Sheets ผ่าน ฐานข้อมูล
   const fetchSettings = async () => {
-    const url = getN8nUrl();
-    
     setIsLoading(true);
     try {
-      const response = await fetch(`${url}/webhook/settings?t=${Date.now()}`);
+      const { GAS_URL } = await import('../context/DataContext.jsx');
+      const response = await fetch(`${GAS_URL}?sheet=Settings&t=${Date.now()}`);
       if (response.ok) {
         const result = await response.json();
-        const data = Array.isArray(result) && result[0]?.json ? result[0].json : (Array.isArray(result) ? result[0] : result);
+        const data = Array.isArray(result) && result.length > 0 ? result[0] : result;
         if (data) {
           const newSettings = {
             companyName: data['Company Name'] || '',
@@ -59,10 +50,10 @@ export default function Settings() {
           localStorage.setItem('companyProfile', JSON.stringify(newSettings));
         }
       } else {
-        Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: `ดึงข้อมูลไม่สำเร็จ (Status: ${response.status}) โปรดตรวจสอบว่าเปิด Active ใน n8n หรือยัง` });
+        Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: `ดึงข้อมูลไม่สำเร็จ (Status: ${response.status}) โปรดตรวจสอบว่าเปิด Active ใน ฐานข้อมูล หรือยัง` });
       }
     } catch (e) {
-      console.log('Failed to fetch settings from n8n');
+      console.log('Failed to fetch settings from ฐานข้อมูล');
     } finally {
       setIsLoading(false);
     }
@@ -70,38 +61,44 @@ export default function Settings() {
 
   useEffect(() => {
     fetchSettings();
-  }, [n8nUrl]); // โหลดใหม่ถ้า n8nUrl เปลี่ยน
+  }, []); // โหลดครั้งเดียว
 
   const handleChange = (field, value) => {
     setSettings(prev => ({ ...prev, [field]: value }));
     setIsSaved(false);
   };
 
-  const handleN8nUrlChange = (val) => {
-    setN8nUrl(val);
-    localStorage.setItem('appSettings', JSON.stringify({ n8nUrl: val }));
-    setIsSaved(false);
-  };
 
   const handleSave = async () => {
     // 1. Save locally to ensure UI works immediately
-    localStorage.setItem('appSettings', JSON.stringify({ n8nUrl }));
+    localStorage.setItem('appSettings', JSON.stringify({ geminiApiKey }));
     localStorage.setItem('companyProfile', JSON.stringify(settings));
     
-    // 2. Save Company Info to Google Sheets via n8n
-    const url = getN8nUrl();
+    // 2. Save Company Info to Google Sheets via GAS
     try {
-      const response = await fetch(`${url}/webhook/settings`, {
+      const { GAS_URL } = await import('../context/DataContext.jsx');
+      const response = await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'update',
+          sheet: 'Settings',
+          idKey: 'Company Name',
+          data: {
+             'Company Name': settings.companyName,
+             'Tax ID': settings.companyTaxId,
+             'Address': settings.companyAddress,
+             'Phone': settings.companyPhone,
+             'Logo URL': settings.companyLogo
+          }
+        })
       });
       if (!response.ok) {
-        Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: `บันทึกไม่สำเร็จ (Status: ${response.status}) โปรดตรวจสอบ n8n` });
+        Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: `บันทึกไม่สำเร็จ (Status: ${response.status}) โปรดตรวจสอบการเชื่อมต่อ` });
         return; // หยุดการทำงานถ้าบันทึกไม่สำเร็จ
       }
     } catch (e) {
-      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ n8n' });
+      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ ฐานข้อมูล' });
       return;
     }
 
@@ -153,15 +150,25 @@ export default function Settings() {
         </div>
       </div>
 
+
       <div className="glass-card" style={{ marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <LinkIcon size={20} color="var(--accent-primary)" />
-          การเชื่อมต่อระบบ (ถูกเก็บในเครื่องนี้เท่านั้น)
+          <Bot size={20} color="var(--accent-primary)" />
+          การตั้งค่า AI (Gemini API Key)
         </h2>
         <div className="input-group">
-          <label className="input-label">n8n Webhook URL (ปล่อยว่างได้ถ้าใช้ Proxy)</label>
-          <input type="text" className="input-field" placeholder="http://localhost:5678" value={n8nUrl} onChange={(e) => handleN8nUrlChange(e.target.value)} />
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>ใส่ URL เต็มของ n8n กรณีติดตั้งไว้บน Cloud</p>
+          <label className="input-label">Gemini API Key (ได้จาก Google AI Studio)</label>
+          <input 
+            type="password" 
+            className="input-field" 
+            placeholder="AIzaSy..." 
+            value={geminiApiKey} 
+            onChange={(e) => {
+              setGeminiApiKey(e.target.value);
+              setIsSaved(false);
+            }} 
+          />
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>คีย์นี้จะถูกเก็บไว้ในเครื่องของคุณเท่านั้น เพื่อความปลอดภัย</p>
         </div>
       </div>
 

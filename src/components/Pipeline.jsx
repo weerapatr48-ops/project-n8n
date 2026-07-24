@@ -64,15 +64,15 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
 
     try {
       const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-      const n8nUrl = settings.n8nUrl || '';
+      const ฐานข้อมูลUrl = settings.ฐานข้อมูลUrl || '';
 
       // Optimistic UI Update for insertion
       const updatedDeals = [...deals, newDealForm];
       setDeals(updatedDeals);
 
-      const response = await fetch(`${n8nUrl}/webhook/db-write`, {
+      const response = await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ 
           action: 'insert', 
           sheet: 'pipeline', 
@@ -124,9 +124,9 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
       const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
       const rowNumber = deal.row_number || deal.rowNumber || deal._rawRowNumber;
       
-      const response = await fetch(`${settings.n8nUrl}/webhook/db-write`, {
+      const response = await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ 
           action: 'delete', 
           sheet: 'pipeline', 
@@ -155,7 +155,7 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
     setIsSavingActivity(true);
     try {
       const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-      const n8nUrl = settings.n8nUrl || '';
+      const ฐานข้อมูลUrl = settings.ฐานข้อมูลUrl || '';
       
       const rowNumber = activityModalDeal.row_number || activityModalDeal.rowNumber || activityModalDeal._rawRowNumber;
       if (!rowNumber) {
@@ -196,9 +196,9 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
       const idKey = Object.keys(payload).find(k => k.toLowerCase() === 'id' || k.includes('รหัส')) || 'id';
 
       // อัปเดตไปยัง Google Sheets
-      const response = await fetch(`${n8nUrl}/webhook/db-write`, {
+      const response = await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ 
           action: 'update', 
           sheet: 'pipeline', 
@@ -242,7 +242,7 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
 
     try {
       const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-      const n8nUrl = settings.n8nUrl || '';
+      const ฐานข้อมูลUrl = settings.ฐานข้อมูลUrl || '';
       
       const rowNumber = activityModalDeal.row_number || activityModalDeal.rowNumber || activityModalDeal._rawRowNumber;
       if (!rowNumber) throw new Error('ไม่พบ Row Number');
@@ -267,9 +267,9 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
       const idKey = Object.keys(payload).find(k => k.toLowerCase() === 'id' || k.includes('รหัส')) || 'id';
 
       // อัปเดตไปยัง Google Sheets
-      const response = await fetch(`${n8nUrl}/webhook/db-write`, {
+      const response = await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ 
           action: 'update', 
           sheet: 'pipeline', 
@@ -378,11 +378,11 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
     updatePromise = updatePromise.then(async () => {
       try {
         const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-        const n8nUrl = settings.n8nUrl || '';
+        const ฐานข้อมูลUrl = settings.ฐานข้อมูลUrl || '';
         
         const payload = { ...deal, [stageKey]: newStageId };
         
-        // ลบ properties ภายในและขยะที่ติดมาจาก n8n ก่อนส่งอัปเดต
+        // ลบ properties ภายในและขยะที่ติดมาจาก ฐานข้อมูล ก่อนส่งอัปเดต
         delete payload._rawRowNumber;
         delete payload.row_number;
         delete payload.rowNumber;
@@ -394,9 +394,9 @@ export default function Pipeline({ setCurrentTab, setAiQuotationData }) {
         const idKey = Object.keys(payload).find(k => k.toLowerCase() === 'id' || k.includes('รหัส')) || 'id';
         const rowNumber = deal.row_number || deal.rowNumber || deal._rawRowNumber;
 
-        const response = await fetch(`${n8nUrl}/webhook/db-write`, {
+        const response = await fetch(GAS_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ 
             action: 'update', 
             sheet: 'pipeline', 

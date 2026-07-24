@@ -18,7 +18,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (userData) => {
-    const authData = { token: 'authenticated', user: userData, loginAt: Date.now() };
+    // กำหนดให้ทุกคนเป็น admin ตามที่ตกลงกัน
+    const userWithAdminRole = { ...userData, role: 'admin' };
+    const authData = { token: 'authenticated', user: userWithAdminRole, loginAt: Date.now() };
     localStorage.setItem('auth', JSON.stringify(authData));
     setAuth(authData);
   };
@@ -29,23 +31,11 @@ export function AuthProvider({ children }) {
   };
 
   const hasRole = (roles) => {
-    if (!auth?.user?.role) return false;
-    if (typeof roles === 'string') return auth.user.role === roles;
-    return roles.includes(auth.user.role);
+    return !!auth; // ลบการเช็คสิทธิ์ซับซ้อนออก ถือว่าล็อกอินแล้วเข้าได้หมด
   };
 
   const canAccess = (feature) => {
-    const role = auth?.user?.role;
-    const rules = {
-      dashboard:  ['admin', 'manager', 'user', 'sale', 'stock'],
-      pipeline:   ['admin', 'manager', 'sale'],
-      quote:      ['admin', 'manager', 'user', 'sale'],
-      ai:         ['admin', 'manager', 'user', 'sale', 'stock'],
-      database:   ['admin', 'manager', 'user', 'sale', 'stock'],
-      stock:      ['admin', 'manager', 'stock'],
-      settings:   ['admin'],
-    };
-    return rules[feature]?.includes(role) ?? false;
+    return !!auth; // เข้าถึงได้ทุกฟีเจอร์ถ้าล็อกอินแล้ว
   };
 
   return (

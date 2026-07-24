@@ -6,13 +6,16 @@ import QuotationPrintPreview from './QuotationPrintPreview';
 const getN8nUrl = () => {
   try {
     const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-    return settings.n8nUrl || '';
+    return settings.ฐานข้อมูลUrl || '';
   } catch {
     return '';
   }
 };
 
+import { useData } from '../context/DataContext';
+
 export default function QuotationHistory({ setCurrentTab, setAiQuotationData }) {
+  const { salesPRHeader, salesPRBody, refreshData } = useData();
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [previewData, setPreviewData] = useState(null);
@@ -25,31 +28,35 @@ export default function QuotationHistory({ setCurrentTab, setAiQuotationData }) 
     }
   };
 
-  const fetchHistory = async () => {
+  useEffect(() => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${getN8nUrl()}/webhook/quotations-history`, { method: 'GET' });
-      if (!response.ok) throw new Error('API Error');
-      
-      const result = await response.json();
-      let rawData = [];
-      if (Array.isArray(result) && result[0]?.json) rawData = result.map(item => item.json);
-      else if (Array.isArray(result)) rawData = result;
-      else if (result && Array.isArray(result.data)) rawData = result.data;
+      if (!salesPRHeader) return;
       
       let mergedData = [];
-      for (const item of rawData) {
-        const id = item.quotation_no || item.id || item['เลขที่'] || item['เลขที่เอกสาร'] || item['รหัส'];
+      for (const header of salesPRHeader) {
+        const id = header.id || header['เลขที่เอกสาร'] || header['รหัส'];
         if (id) {
+          // Find items for this header
+          const items = salesPRBody ? salesPRBody.filter(b => b.doc_id === id || b['Doc ID'] === id) : [];
+          const formattedItems = items.map(item => ({
+            id: item.id,
+            description: item.product_name || item['Product Name'],
+            code: item.product_code || item['Product Code'],
+            quantity: item.quantity || item['Quantity'],
+            unit: item.unit || item['Unit'],
+            unit_price: item.price || item['Price'],
+            total: item.total || item['Total']
+          }));
+
           mergedData.push({
-             ...item,
              id: id,
-             customer: item.customer_name || item.customer || item['ลูกค้า'] || '-',
-             total: item.total || item['ยอดรวมสุทธิ'] || 0,
-             status: item.status || item['สถานะ'] || 'Pending',
-             date: item.date || item['วันที่'],
-             items_json: item.items_json,
-             rawItem: item
+             customer: header.customer_name || header['Customer Name'] || '-',
+             total: header.total_amount || header['Total Amount'] || 0,
+             status: header.status || header['Status'] || 'เสนอราคา',
+             date: header.created_at || header['Created At'],
+             items: formattedItems,
+             rawItem: header
           });
         }
       }
@@ -62,16 +69,12 @@ export default function QuotationHistory({ setCurrentTab, setAiQuotationData }) 
       
       setData(mergedData);
     } catch (error) {
-      console.log('Failed to fetch from n8n', error);
+      console.log('Failed to format PR data', error);
       setData([]);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchHistory();
-  }, []);
+  }, [salesPRHeader, salesPRBody]);
 
   const totalQuotations = data.length;
   const totalValue = data.reduce((sum, item) => {
@@ -80,30 +83,17 @@ export default function QuotationHistory({ setCurrentTab, setAiQuotationData }) 
   }, 0);
 
   const handleEdit = (row) => {
-    let items = [];
-    try {
-      if (row.items_json) {
-        items = JSON.parse(row.items_json);
-      }
-    } catch(e) {
-      console.error('Failed to parse items_json', e);
-    }
-    
     if (setAiQuotationData && setCurrentTab) {
       setAiQuotationData({
-        quotation_no: row.id || row['เลขที่เอกสาร'],
+        quotation_no: row.id,
         customerInfo: { name: row.customer },
-        items: items
+        items: row.items
       });
       setCurrentTab('quote_maker');
     }
   };
 
   const handlePreview = (row) => {
-    let items = [];
-    try {
-      if (row.items_json) items = JSON.parse(row.items_json);
-    } catch(e) {}
     
     const qData = {
       quotation_no: row.id || row['เลขที่เอกสาร'],
@@ -114,12 +104,12 @@ export default function QuotationHistory({ setCurrentTab, setAiQuotationData }) 
         taxId: row.rawItem?.['เลขผู้เสียภาษี'] || row.rawItem?.taxId || '',
         phone: row.rawItem?.['เบอร์โทร'] || row.rawItem?.phone || ''
       },
-      employee: { name: row.rawItem?.['ผู้สร้าง'] || row.rawItem?.created_by || row.rawItem?.employee || '' },
-      items: items,
-      subtotal: items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unit_price)), 0),
-      vat: items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unit_price)), 0) * 0.07,
-      total: row.total || row['ยอดรวมสุทธิ'] || 0,
-      remark: row.rawItem?.remark || 'ยืนยันราคา 30 วัน'
+      employee: { name: row.rawItem?.['created_by'] || row.rawItem?.['Created By'] || '' },
+      items: row.items,
+      subtotal: row.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unit_price)), 0),
+      vat: row.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unit_price)), 0) * 0.07,
+      total: row.total || 0,
+      remark: 'ยืนยันราคา 30 วัน'
     };
     setPreviewData(qData);
   };
@@ -148,19 +138,26 @@ export default function QuotationHistory({ setCurrentTab, setAiQuotationData }) 
     if (result.isConfirmed) {
       try {
         setIsLoading(true);
-        const response = await fetch(`${getN8nUrl()}/webhook/quotations-cancel`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: row.id || row['เลขที่เอกสาร'] })
-        });
-        
-        if (!response.ok) throw new Error('Cancel failed');
-        
-        Swal.fire('สำเร็จ', 'ยกเลิกใบเสนอราคาเรียบร้อยแล้ว', 'success');
-        fetchHistory();
-      } catch (error) {
-        console.error(error);
-        Swal.fire('ผิดพลาด', 'ไม่สามารถยกเลิกเอกสารได้ (โปรดตรวจสอบการตั้งค่า n8n Webhook)', 'error');
+        if (row.rawItem && row.rawItem._rawRowNumber) {
+          const s = getSettings();
+          const ฐานข้อมูลUrl = s.ฐานข้อมูลUrl || '';
+          await fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'update',
+              sheet: 'sales_pr_header',
+              row_number: row.rawItem._rawRowNumber,
+              data: { ...row.rawItem, status: 'Cancelled', Status: 'Cancelled' }
+            })
+          });
+        }
+        Swal.fire('ยกเลิกแล้ว!', 'ใบเสนอราคานี้ถูกยกเลิกแล้ว', 'success');
+        refreshData();
+      } catch (err) {
+        console.error('Error cancelling', err);
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถยกเลิกเอกสารได้', 'error');
+      } finally {
         setIsLoading(false);
       }
     }
@@ -173,8 +170,8 @@ export default function QuotationHistory({ setCurrentTab, setAiQuotationData }) 
           <h1 className="title-lg" style={{ fontSize: '1.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>ประวัติใบเสนอราคา</h1>
           <p className="subtitle">รายการใบเสนอราคาที่เคยสร้างไว้ทั้งหมด</p>
         </div>
-        <button className="btn-primary" style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} onClick={fetchHistory} disabled={isLoading}>
-          <RefreshCw size={18} className={isLoading ? 'pulse' : ''} /> รีเฟรชข้อมูล
+        <button className="btn-primary" style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }} onClick={refreshData} disabled={isLoading}>
+          <RefreshCw size={16} className={isLoading ? "spin" : ""} /> รีเฟรชข้อมูล
         </button>
       </div>
 

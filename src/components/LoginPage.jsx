@@ -30,7 +30,7 @@ export default function LoginPage({ onLoginSuccess }) {
     setError('');
     setSuccessMsg('');
 
-    const n8nUrl = getSettings().n8nUrl || '';
+    const ฐานข้อมูลUrl = getSettings().ฐานข้อมูลUrl || '';
 
     if (!isLoginTab && formData.password !== formData.confirmPassword) {
       setError('รหัสผ่านไม่ตรงกัน');
@@ -46,7 +46,7 @@ export default function LoginPage({ onLoginSuccess }) {
       if (!isLoginTab) {
         // Fetch existing users to generate custom ID
         try {
-          const usersRes = await fetch(`${n8nUrl}/webhook/db-read?sheet=Users`);
+          const usersRes = await fetch(`\${GAS_URL}?sheet=Users&t=\${Date.now()}`);
           const text = await usersRes.text();
           const result = JSON.parse(text);
           let rawData = [];
@@ -79,9 +79,9 @@ export default function LoginPage({ onLoginSuccess }) {
         
       console.log('Sending Registration Payload:', payload);
 
-      const res = await fetch(`${n8nUrl}${endpoint}`, {
+      const res = await fetch(`${ฐานข้อมูลUrl}${endpoint}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
       
@@ -101,7 +101,7 @@ export default function LoginPage({ onLoginSuccess }) {
       }
     } catch (err) {
       console.error(err);
-      // For demo purposes, allow mock login if n8n backend is not fully ready
+      // For demo purposes, allow mock login if ฐานข้อมูล backend is not fully ready
       if (isLoginTab && formData.email === 'admin@admin.com') {
           login({ name: 'Admin User', email: formData.email, role: 'admin' });
           if (onLoginSuccess) onLoginSuccess();

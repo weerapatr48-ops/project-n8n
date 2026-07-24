@@ -70,7 +70,7 @@ export default function Fulfillment() {
     if (result.isConfirmed) {
       setLoading(true);
       try {
-        const n8nUrl = settings?.n8nUrl || '';
+        const ฐานข้อมูลUrl = settings?.ฐานข้อมูลUrl || '';
         let deductionLogs = [];
 
         let rawStock = [];
@@ -97,9 +97,9 @@ export default function Fulfillment() {
             delete payload._rawRowNumber; delete payload.row_number; delete payload.rowNumber;
             delete payload._action; delete payload._sheet; delete payload._idKey;
 
-            await fetch(`${n8nUrl}/webhook/db-write`, {
+            await fetch(GAS_URL, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
               body: JSON.stringify({ action: 'update', sheet: 'stock', data: payload, idKey: idKey, row_number: rowNum })
             });
           } else {
@@ -112,9 +112,9 @@ export default function Fulfillment() {
             }
             const masterProd = rawMaster.find(p => (p['ชื่อ'] || p.name || '') === item.product_name) || {};
             
-            await fetch(`${n8nUrl}/webhook/db-write`, {
+            await fetch(GAS_URL, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
               body: JSON.stringify({
                 action: 'insert',
                 sheet: 'stock',
@@ -131,9 +131,9 @@ export default function Fulfillment() {
           }
 
           // Log to Stock_Log
-          await fetch(`${n8nUrl}/webhook/db-write`, {
+          await fetch(GAS_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({
               action: 'insert',
               sheet: 'Stock_Log',
@@ -155,9 +155,9 @@ export default function Fulfillment() {
         const correctRowNum = so._rawRowNumber;
         delete payload._rawRowNumber;
         
-        await fetch(`${n8nUrl}/webhook/db-write`, {
+        await fetch(GAS_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'update', sheet: 'sales_so', data: payload, idKey: 'id', row_number: correctRowNum })
         });
 

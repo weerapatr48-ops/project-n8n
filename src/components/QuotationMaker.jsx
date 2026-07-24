@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useData } from '../context/DataContext';
+import { useData, GAS_URL } from '../context/DataContext';
 import { FileText, Bot, Plus, Trash2, Printer, Save, Search, AlertTriangle, CheckCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { THBText, formatMoney } from '../utils/formatters';
 import QuotationPrintPreview from './QuotationPrintPreview';
 export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) {
   const { auth, canAccess } = useAuth();
-  const [mode, setMode] = useState('manual'); // 'ai' or 'manual'
   const [loading, setLoading] = useState(false);
   const { customers, employees, products: rawProducts, stockData, settings, isDataLoaded } = useData();
-  const [aiPrompt, setAiPrompt] = useState('');
   
   const productsList = React.useMemo(() => {
     if (!rawProducts) return [];
@@ -42,111 +40,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
     remark: 'ยืนยันราคา 30 วัน'
   });
 
-  const getSettings = () => JSON.parse(localStorage.getItem('appSettings') || '{}');
 
-  useEffect(() => {
-    calculateTotals();
-  }, [quoteData.items]);
-
-  useEffect(() => {
-    if (aiQuotationData && isDataLoaded) {
-      setQuoteData(prev => {
-        let newData = { ...prev };
-        
-        if (aiQuotationData.quotation_no || aiQuotationData.id) {
-          newData.quotation_no = aiQuotationData.quotation_no || aiQuotationData.id;
-        }
-        
-        // Match customer from DB
-        const rawAiCust = aiQuotationData.customerInfo || aiQuotationData.customer;
-        let targetName = prev.customer.name;
-        let providedTaxId = prev.customer.taxId;
-        let providedAddress = prev.customer.address;
-        let providedPhone = prev.customer.phone;
-
-        if (typeof rawAiCust === 'string') {
-          targetName = rawAiCust;
-        } else if (rawAiCust && typeof rawAiCust === 'object') {
-          targetName = rawAiCust.name || rawAiCust.companyName || rawAiCust.customerName || rawAiCust['ชื่อลูกค้า'] || rawAiCust['ชื่อ'] || rawAiCust['ลูกค้า'] || targetName;
-          providedTaxId = rawAiCust.taxId || providedTaxId;
-          providedAddress = rawAiCust.address || providedAddress;
-          providedPhone = rawAiCust.phone || providedPhone;
-        }
-
-        const cleanStr = (s) => {
-          let str = (s || '').toLowerCase();
-          str = str.replace(/บริษัท|บ\.|บมจ\.?|บจก\.?|จำกัด|หจก\.?|co\.,?\s*ltd\.?|ltd\.?|company|limited|partnership|head office/g, '');
-          return str.replace(/[^a-z0-9ก-๙]/g, '');
-        };
-        const targetClean = cleanStr(targetName);
-        
-        if (targetClean) {
-          let cust = customers.find(c => cleanStr(c['ชื่อลูกค้า/ผู้ขาย']) === targetClean);
-          if (!cust) {
-            cust = customers.find(c => cleanStr(c['ชื่อลูกค้า/ผู้ขาย']).includes(targetClean) || targetClean.includes(cleanStr(c['ชื่อลูกค้า/ผู้ขาย'])));
-          }
-          if (!cust) {
-            // Additional fallback checking "ชื่อบริษัท (เพิ่มเติม)"
-            cust = customers.find(c => {
-              const extra = cleanStr(c['ชื่อบริษัท (เพิ่มเติม)']);
-              return extra && (extra === targetClean || extra.includes(targetClean) || targetClean.includes(extra));
-            });
-          }
-          
-          if (cust) {
-            newData.customer = {
-              name: cust['ชื่อลูกค้า/ผู้ขาย'],
-              taxId: cust['เลขประจำตัวผู้เสียภาษีอากรของลูกค้า/ผู้ขาย'] || '',
-              address: cust['ที่อยู่ 1'] || '',
-              phone: cust['โทรศัพท์'] || ''
-            };
-            
-            // Auto-select salesperson based on รหัส PIC
-            if (isDataLoaded && employees.length > 0) {
-              const picCode = (cust['รหัส PIC'] || cust['รหัสPIC'] || cust['PIC'] || '').trim();
-              if (picCode) {
-                const emp = employees.find(e => (e['รหัสpic'] || e['รหัสPIC'] || e['PIC'] || '').trim() === picCode);
-                if (emp) {
-                  const empName = emp['ชื่อpic'] || emp['ชื่อพนักงาน'] || emp['ชื่อ'] || emp['name'] || emp['ชื่อ-นามสกุล'];
-                  if (empName) newData.employee = { ...newData.employee, name: empName };
-                }
-              }
-            }
-          } else {
-            newData.customer = { 
-              name: targetName,
-              taxId: providedTaxId,
-              address: providedAddress,
-              phone: providedPhone
-            };
-          }
-        }
-        
-        const aiItems = aiQuotationData.items || aiQuotationData['รายการสินค้า'] || aiQuotationData['สินค้า'] || [];
-        if (aiItems.length > 0) {
-          newData.items = aiItems.map((item, idx) => {
-            const desc = item.description || item.name || item['รายละเอียด'] || item['ชื่อสินค้า'] || item['สินค้า'] || '';
-            const qty = Number(item.quantity || item.qty || item['จำนวน'] || 1);
-            const unit = item.unit || item['หน่วย'] || 'ชิ้น';
-            const price = Number(item.price || item.unit_price || item.unitPrice || item['ราคา'] || item['ราคาต่อหน่วย'] || 0);
-            
-            return {
-              id: Date.now() + idx,
-              description: desc,
-              quantity: qty,
-              unit: unit,
-              unit_price: price,
-              total: qty * price
-            };
-          });
-        }
-        return newData;
-      });
-      if (setAiQuotationData) {
-        setAiQuotationData(null);
-      }
-    }
-  }, [aiQuotationData, isDataLoaded, customers, employees, setAiQuotationData]);
 
 
 
@@ -240,74 +134,72 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
     setQuoteData({ ...quoteData, items: newItems });
   };
 
-  const handleAiSubmit = async (e) => {
-    e.preventDefault();
-    if (!aiPrompt) return;
-    setLoading(true);
-    try {
-      const s = getSettings();
-      const res = await fetch(`${s.n8nUrl || ''}/webhook/ai-assistant`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: `ร่างใบเสนอราคา: ${aiPrompt}` })
-      });
-      const data = await res.json();
-      
-      if (data?.action === 'quotation' && data?.data) {
-        const d = data.data;
-        const aiItems = (d.items || []).map((item, idx) => ({
-          id: Date.now() + idx,
-          description: item.description || '',
-          quantity: item.quantity || 1,
-          unit: item.unit || 'ชิ้น',
-          unit_price: item.price || 0,
-          total: (item.quantity || 1) * (item.price || 0)
-        }));
-        
-        setQuoteData(prev => ({
-          ...prev,
-          customer: {
-            ...prev.customer,
-            ...d.customerInfo
-          },
-          items: aiItems.length > 0 ? aiItems : prev.items
-        }));
-        setAiPrompt('');
-      }
-    } catch (err) {
-      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'เกิดข้อผิดพลาดในการเรียก AI' });
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    calculateTotals();
+  }, [quoteData.items]);
 
 
   const saveQuotation = async () => {
+    if (!validateForm()) return;
     try {
       setLoading(true);
-      const s = getSettings();
       
-      const newQuote = { 
-        ...quoteData, 
-        id: quoteData.quotation_no,
-        customerName: quoteData.customer?.name || '-',
-        totalAmount: quoteData.total || 0,
-        status: 'เสนอราคา',
-        created_by: auth?.user?.name,
-        saved_at: new Date().toISOString()
-      };
+      const docId = quoteData.quotation_no;
+      const timestamp = new Date().toISOString();
+      const creator = auth?.user?.name || 'System';
       
-      const response = await fetch(`${s.n8nUrl || ''}/webhook/quotations`, {
+      // 1. Create Sales PR Header
+      await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newQuote)
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'insert',
+          sheet: 'sales_pr_header',
+          data: {
+            id: docId,
+            customer_name: quoteData.customer?.name || quoteData.customerName || '-',
+            tax_id: quoteData.customer?.taxId || '',
+            address: quoteData.customer?.address || '',
+            phone: quoteData.customer?.phone || '',
+            total_amount: quoteData.total || 0,
+            status: 'เสนอราคา',
+            created_by: creator,
+            created_at: timestamp,
+            updated_at: timestamp
+          }
+        })
       });
+
+      // 2. Create Sales PR Body (Items)
+      for (const item of quoteData.items) {
+        await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'insert',
+            sheet: 'sales_pr_body',
+            data: {
+              id: `PR-BODY-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+              doc_id: docId,
+              product_name: item.description,
+              product_code: item.code || '',
+              quantity: Number(item.quantity) || 0,
+              unit: item.unit || 'ชิ้น',
+              price: Number(item.unit_price) || 0,
+              total: Number(item.total) || 0,
+              created_by: creator,
+              created_at: timestamp
+            }
+          })
+        });
+      }
       
-      if (!response.ok) throw new Error('Network error');
-      
-      Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกใบเสนอราคาไปยังส่วนกลางเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกใบเสนอราคาเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
     } catch (err) {
-      console.log('Error saving ');
+      console.log('Error saving ', err);
+      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'ไม่สามารถบันทึกข้อมูลได้' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -323,106 +215,6 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
     return true;
   };
 
-  const handleCloseSale = async () => {
-    if (!validateForm()) return;
-    
-    const result = await Swal.fire({
-      title: 'ยืนยันการปิดการขาย',
-      text: 'ระบบจะสร้างใบสั่งขาย (SO) และส่งรายการไปที่คลังสินค้าเพื่อเตรียมจัดส่ง',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'ยืนยัน & สร้าง SO',
-      cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: 'var(--success)'
-    });
-
-    if (result.isConfirmed) {
-      setLoading(true);
-      try {
-        const s = getSettings();
-        const n8nUrl = s.n8nUrl || '';
-        
-        const soNumber = `SO-${Date.now()}`;
-        
-        // 1. Create SO Header (sales_so)
-        await fetch(`${n8nUrl}/webhook/db-write`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'insert',
-            sheet: 'sales_so',
-            data: {
-              id: soNumber,
-              customer_name: quoteData.customerName,
-              total_amount: quoteData.grandTotal,
-              date: new Date().toISOString(),
-              status: 'รอจัดส่ง', // Pending
-              created_by: auth?.user?.name || 'System',
-              payment_term: quoteData.paymentTerm || '',
-              valid_until: quoteData.validUntil || ''
-            }
-          })
-        });
-
-        // 2. Create SO Details (sub_sales_so)
-        for (const item of quoteData.items) {
-          await fetch(`${n8nUrl}/webhook/db-write`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'insert',
-              sheet: 'sub_sales_so',
-              data: {
-                id: `SUB-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-                so_id: soNumber,
-                product_name: item.description,
-                product_code: item.code || '',
-                quantity: Number(item.quantity) || 0,
-                unit: item.unit || 'ชิ้น',
-                price: Number(item.unitPrice) || 0,
-                total: Number(item.total) || 0
-              }
-            })
-          });
-        }
-        const newQuote = { 
-          ...quoteData, 
-          id: quoteData.quotation_no,
-          customerName: quoteData.customer?.name || '-',
-          totalAmount: quoteData.total || 0,
-          status: 'รอคลังจัดส่ง (SO)',
-          created_by: auth?.user?.name,
-          saved_at: new Date().toISOString(),
-          remark: `${quoteData.remark} (อ้างอิง: ${soNumber})`
-        };
-        
-        await fetch(`${n8nUrl}/webhook/quotations`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newQuote)
-        }).catch(e => console.log("Failed to save quotation", e));
-        
-        Swal.fire({
-          title: 'สำเร็จ!',
-          text: `สร้างใบสั่งขาย ${soNumber} เรียบร้อย! ส่งต่อให้คลังสินค้าเตรียมจัดส่งแล้ว`,
-          icon: 'success'
-        });
-        
-        setQuoteData({
-          customerName: '', address: '', taxId: '', date: new Date().toISOString().split('T')[0],
-          validUntil: '', paymentTerm: '', items: [{ code: '', description: '', quantity: 1, unit: 'ชิ้น', unitPrice: 0, total: 0 }],
-          notes: '', subTotal: 0, taxAmount: 0, grandTotal: 0,
-          customer: {}
-        });
-        
-      } catch (err) {
-        console.error("Error creating SO", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
   if (!canAccess('quote')) return null;
 
   const ITEMS_PER_PAGE = 20;
@@ -435,44 +227,11 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }} className="no-print">
         <h1 className="title-lg">สร้างใบเสนอราคา</h1>
-        <div style={{ display: 'flex', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-full)', padding: '0.25rem' }}>
-          <button 
-            className={`btn-mode ${mode === 'manual' ? 'active' : ''}`}
-            onClick={() => setMode('manual')}
-          >
-            <FileText size={16} /> สร้างเอง
-          </button>
-          <button 
-            className={`btn-mode ${mode === 'ai' ? 'active' : ''}`}
-            onClick={() => setMode('ai')}
-          >
-            <Bot size={16} /> ใช้ AI ช่วย
-          </button>
-        </div>
       </div>
 
       <div style={styles.layout}>
-        {/* LEFT PANEL: Form / AI */}
+        {/* LEFT PANEL: Form */}
         <div className="glass-card no-print" style={styles.leftPanel}>
-          {mode === 'ai' && (
-            <div style={{ marginBottom: '2rem', padding: '1rem', background: 'var(--accent-light)', borderRadius: 'var(--radius-md)' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-primary)', marginBottom: '1rem' }}>
-                <Bot /> AI ผู้ช่วยร่างใบเสนอราคา
-              </h3>
-              <form onSubmit={handleAiSubmit} style={{ display: 'flex', gap: '0.5rem' }}>
-                <input 
-                  className="input-field" 
-                  style={{ flex: 1 }} 
-                  placeholder="เช่น ออกใบเสนอราคาให้ บจก. เอบีซี มีคอมพิวเตอร์ 2 เครื่อง เครื่องละ 25000"
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                />
-                <button type="submit" className="btn-primary" disabled={loading}>
-                  {loading ? 'กำลังคิด...' : 'สร้าง'}
-                </button>
-              </form>
-            </div>
-          )}
 
           <div style={styles.formSection}>
             <h3 style={styles.sectionTitle}>ข้อมูลลูกค้า</h3>
@@ -586,15 +345,7 @@ export default function QuotationMaker({ aiQuotationData, setAiQuotationData }) 
               onClick={saveQuotation}
               disabled={loading || !quoteData.customer || quoteData.items.length === 0}
             >
-              <Save size={18} /> {loading ? 'กำลังบันทึก...' : 'บันทึกใบเสนอราคา'}
-            </button>
-            <button 
-              className="btn-primary" 
-              style={{ flex: 1.2, justifyContent: 'center', backgroundColor: '#10b981', color: 'white', border: 'none' }} 
-              onClick={handleCloseSale}
-              disabled={loading || !quoteData.customer || quoteData.items.length === 0}
-            >
-              <CheckCircle size={18} /> ปิดการขาย & สร้างใบสั่งขาย (SO)
+              <Save size={18} /> {loading ? 'กำลังบันทึก...' : 'บันทึกใบเสนอราคา (PR Header & Body)'}
             </button>
           </div>
         </div>

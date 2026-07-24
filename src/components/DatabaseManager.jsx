@@ -2,38 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, RefreshCw, AlertTriangle, Check, X, Database } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
-import { useData } from '../context/DataContext';
+import { useData, GAS_URL } from '../context/DataContext';
 import StockManager from './StockManager';
 
 const getN8nUrl = () => {
   try {
     const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-    return settings.n8nUrl || '';
+    return settings.ฐานข้อมูลUrl || '';
   } catch {
     return '';
   }
 };
 
 const SHEETS_CONFIG = [
-  { id: 'customer', label: 'ลูกค้าและคู่ค้า (Customer)', readEndpoint: '/webhook/db-read?sheet=customer', roles: ['admin', 'manager', 'sale', 'user'] },
-  { id: 'product', label: 'ฐานข้อมูลสินค้าหลัก (Product)', readEndpoint: '/webhook/db-read?sheet=product', roles: ['admin', 'manager', 'stock'] },
-  { id: 'stock', label: 'เช็คสต็อก (Stock)', readEndpoint: '/webhook/db-read?sheet=stock', roles: ['admin', 'manager', 'stock'] },
-  { id: 'Users', label: 'จัดการผู้ใช้งาน (Users)', readEndpoint: '/webhook/db-read?sheet=Users', roles: ['admin'] },
-  { id: 'empolyee', label: 'รายชื่อพนักงาน (Employees)', readEndpoint: '/webhook/db-read?sheet=empolyee', roles: ['admin'] },
-  { id: 'Quotations', label: 'ใบเสนอราคา (Quotations)', readEndpoint: '/webhook/db-read?sheet=Quotations', roles: ['admin', 'manager', 'sale'] },
-  { id: 'pipeline', label: 'CRM Pipeline (Deals)', readEndpoint: '/webhook/db-read?sheet=pipeline', roles: ['admin', 'manager', 'sale'] },
-  { id: 'sales_so', label: 'Sales Order (SO)', readEndpoint: '/webhook/db-read?sheet=sales_so', roles: ['admin', 'manager'] },
-  { id: 'precher_po', label: 'Purchase Order (PO)', readEndpoint: '/webhook/db-read?sheet=precher_po', roles: ['admin', 'manager'] },
-  { id: 'Settings', label: 'ตั้งค่าระบบอื่นๆ (Settings DB)', readEndpoint: '/webhook/db-read?sheet=Settings', roles: ['admin'] },
+  { id: 'customer', label: 'ลูกค้าและคู่ค้า (Customer)', readEndpoint: '/webhook/db-read?sheet=customer' },
+  { id: 'product', label: 'ฐานข้อมูลสินค้าหลัก (Product)', readEndpoint: '/webhook/db-read?sheet=product' },
+  { id: 'stock', label: 'เช็คสต็อก (Stock)', readEndpoint: '/webhook/db-read?sheet=stock' },
+  { id: 'Users', label: 'จัดการผู้ใช้งาน (Users)', readEndpoint: '/webhook/db-read?sheet=Users' },
+  { id: 'empolyee', label: 'รายชื่อพนักงาน (Employees)', readEndpoint: '/webhook/db-read?sheet=empolyee' },
+  { id: 'sales_pr_header', label: 'ใบเสนอราคาหลัก (Sales PR Header)', readEndpoint: '/webhook/db-read?sheet=sales_pr_header' },
+  { id: 'sales_pr_body', label: 'ใบเสนอราคาย่อย (Sales PR Body)', readEndpoint: '/webhook/db-read?sheet=sales_pr_body' },
+  { id: 'Settings', label: 'ตั้งค่าระบบอื่นๆ (Settings DB)', readEndpoint: '/webhook/db-read?sheet=Settings' },
 ];
 
 export default function DatabaseManager() {
   const { auth } = useAuth();
   const { employees, refreshData } = useData();
-  const role = auth?.user?.role || 'user';
   
-  // Filter sheets based on role
-  const availableSheets = SHEETS_CONFIG.filter(sheet => sheet.roles.includes(role));
+  // ถือว่าทุกคนเป็น admin ให้สิทธิ์เห็นได้ทุกตาราง
+  const availableSheets = SHEETS_CONFIG;
   
   const [activeDb, setActiveDb] = useState(availableSheets[0]?.id || '');
   const [data, setData] = useState([]);
@@ -64,15 +61,10 @@ export default function DatabaseManager() {
     setColumns([]);
     
     try {
-      const fetchUrl = config.readEndpoint.includes('?') 
-          ? `${getN8nUrl()}${config.readEndpoint}&t=${Date.now()}`
-          : `${getN8nUrl()}${config.readEndpoint}?t=${Date.now()}`;
+      const fetchUrl = `${GAS_URL}?sheet=${config.id}&t=${Date.now()}`;
 
       const response = await fetch(fetchUrl, { 
-        method: 'GET',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-        }
+        method: 'GET'
       });
       
       if (response.ok) {
@@ -84,21 +76,21 @@ export default function DatabaseManager() {
           console.warn('Response is not valid JSON:', text);
           result = [];
         }
-        console.log('=== n8n RAW RESPONSE ===');
+        console.log('=== RAW RESPONSE ===');
         console.log('IsArray:', Array.isArray(result));
         console.log('Keys:', typeof result === 'object' ? Object.keys(result).slice(0, 10) : 'N/A');
         console.log('Full result:', JSON.stringify(result).substring(0, 1000));
         let rawData = [];
         
         if (Array.isArray(result)) {
-          // n8n returns array directly, or array of {json: ...} wrappers
+          // ฐานข้อมูล returns array directly, or array of {json: ...} wrappers
           if (result.length > 0 && result[0]?.json) {
             rawData = result.map(item => item.json);
           } else {
             rawData = result;
           }
         } else if (result && typeof result === 'object' && !result.error) {
-          // n8n sometimes returns object with numeric keys (array-like) when responseMode=lastNode
+          // ฐานข้อมูล sometimes returns object with numeric keys (array-like) when responseMode=lastNode
           const keys = Object.keys(result);
           const hasNumericKeys = keys.length > 0 && keys.every(k => !isNaN(k));
           
@@ -112,7 +104,7 @@ export default function DatabaseManager() {
             rawData = [result];
           }
         } else {
-          setErrorMsg(`ข้อมูลผิดรูปแบบ หรือยังไม่มีข้อมูลใน n8n สำหรับ ${config.id}`);
+          setErrorMsg(`ข้อมูลผิดรูปแบบ หรือยังไม่มีข้อมูลในตารางสำหรับ ${config.id}`);
           setIsLoading(false);
           return;
         }
@@ -129,7 +121,7 @@ export default function DatabaseManager() {
           let cols = Object.keys(rawData[0]).filter(k => !excludeCols.includes(k) && !k.startsWith('_'));
           
           // Move 'id' or 'รหัส' to front if exists
-          const idIndex = cols.findIndex(c => c.toLowerCase() === 'id' || c === 'รหัส');
+          const idIndex = cols.findIndex(c => c.toLowerCase() === 'id' || c === 'รหัส' || c.toLowerCase().includes('รหัสลูกค้า'));
           if (idIndex > 0) {
             const idCol = cols.splice(idIndex, 1)[0];
             cols.unshift(idCol);
@@ -170,10 +162,10 @@ export default function DatabaseManager() {
            setData([]);
         }
       } else {
-        setErrorMsg(`เชื่อมต่อล้มเหลว หรือยังไม่ได้สร้าง Webhook ${config.readEndpoint} ใน n8n`);
+        setErrorMsg(`เชื่อมต่อล้มเหลว หรือยังไม่ได้สร้าง Webhook ${config.readEndpoint} ใน ฐานข้อมูล`);
       }
     } catch (error) {
-      setErrorMsg(`เชื่อมต่อ n8n ไม่ได้ (${error.message})`);
+      setErrorMsg(`เชื่อมต่อฐานข้อมูลไม่ได้ (${error.message})`);
     } finally {
       setIsLoading(false);
     }
@@ -194,6 +186,8 @@ export default function DatabaseManager() {
     setEditingId(null);
     setEditForm({});
   };
+
+
 
   const handleAdd = () => {
     const idKey = columns.find(c => c.toLowerCase() === 'id' || c === 'รหัส') || (columns.length > 0 ? columns[0] : 'id');
@@ -216,12 +210,12 @@ export default function DatabaseManager() {
     setIsSaving(true);
     try {
       const payload = { ...editForm };
-      // Remove internal fields that should not be sent to n8n/Google Sheets
+      // Remove internal fields that should not be sent to ฐานข้อมูล/Google Sheets
       delete payload.isNew;
       delete payload._rawRowNumber;
       
       const isInsert = editForm.isNew;
-      const n8nUrl = getN8nUrl();
+      const ฐานข้อมูลUrl = getN8nUrl();
 
       console.log('=== DB WRITE REQUEST ===');
       console.log('Action:', isInsert ? 'insert' : 'update');
@@ -290,10 +284,23 @@ export default function DatabaseManager() {
         payload[idKey] = `${prefix}${nextNum}`;
       }
       // ================================================
+      
+      const now = new Date().toLocaleString('th-TH');
+      const createDateKey = columns.find(c => c === 'วันที่สร้าง' || c === 'Created At' || c.toLowerCase() === 'created_at');
+      const creatorKey = columns.find(c => c === 'ผู้สร้าง' || c === 'Created By' || c.toLowerCase() === 'created_by');
+      const updateDateKey = columns.find(c => c === 'วันที่แก้ไขล่าสุด' || c === 'Updated At' || c.toLowerCase() === 'updated_at');
 
-      const response = await fetch(`${n8nUrl}/webhook/db-write`, {
+      if (isInsert) {
+        if (createDateKey && !payload[createDateKey]) payload[createDateKey] = now;
+        if (creatorKey && !payload[creatorKey]) payload[creatorKey] = 'System User';
+      }
+      if (updateDateKey) {
+        payload[updateDateKey] = now;
+      }
+
+      const response = await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ 
           action: isInsert ? 'insert' : 'update', 
           sheet: activeDb, 
@@ -304,6 +311,37 @@ export default function DatabaseManager() {
       });
       
       if (response.ok) {
+        // Auto-sync product to stock
+        if (activeDb === 'product' && isInsert) {
+           const pCode = payload['รหัสสินค้า'] || payload['รหัส'] || payload.id || payload.code;
+           const pName = payload['ชื่อสินค้า'] || payload['ชื่อ'] || payload.name;
+           if (pCode) {
+             const stockPayload = {
+               'รหัส': pCode,
+               'ชื่อ': pName || '',
+               'จำนวน': payload['จำนวน'] || 0,
+               'หน่วย': payload['หน่วย'] || 'ชิ้น',
+               'ประเภทสินค้า': payload['ประเภทสินค้า'] || '',
+               'ประเภทสินค้า2': payload['ประเภทสินค้า2'] || '',
+               'บาร์โค๊ด': payload['บาร์โค๊ด'] || '',
+               'ครีเวิด': payload['ครีเวิด'] || '',
+               'สถานะ': payload['สถานะ'] || '',
+               'แบรนด์': payload['แบรนด์'] || '',
+               'กลุ่มสินค้า': payload['กลุ่มสินค้า'] || '',
+               'วันที่รับเข้า': payload['วันที่รับเข้า'] || '',
+               'วันที่ขายออก': payload['วันที่ขายออก'] || '',
+               'วันที่สร้าง': now,
+               'วันที่แก้ไขล่าสุด': now,
+               'ผู้สร้าง': auth?.user?.name || 'Auto Sync (Product)'
+             };
+             fetch(GAS_URL, {
+               method: 'POST',
+               headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+               body: JSON.stringify({ action: 'insert', sheet: 'stock', data: stockPayload, idKey: 'รหัส' })
+             }).catch(e => console.error('Failed to sync stock', e));
+           }
+        }
+
         Swal.fire({ icon: 'success', title: 'สำเร็จ', text: isInsert ? 'เพิ่มข้อมูลเรียบร้อยแล้ว' : 'แก้ไขข้อมูลเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
         setEditingId(null);
         fetchData(); 
@@ -333,10 +371,10 @@ export default function DatabaseManager() {
       if (result.isConfirmed) {
         setIsSaving(true);
         try {
-          const response = await fetch(`${getN8nUrl()}/webhook/db-write`, {
+          const response = await fetch(GAS_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'delete', sheet: activeDb, data: { row_number: row._rawRowNumber } })
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'delete', sheet: activeDb, data: { row_number: row._rawRowNumber }, row_number: row._rawRowNumber })
           });
           
           if (response.ok) {
@@ -503,9 +541,7 @@ export default function DatabaseManager() {
                         ) : (
                           <>
                             <button onClick={() => startEdit(row)} className="btn-icon" title="แก้ไข"><Edit2 size={16} /></button>
-                            {['admin', 'manager'].includes(String(role).trim().toLowerCase()) && (
-                              <button onClick={() => handleDelete(row)} className="btn-icon danger" title="ลบ (Admin/Manager)"><Trash2 size={16} /></button>
-                            )}
+                            <button onClick={() => handleDelete(row)} className="btn-icon danger" title="ลบ"><Trash2 size={16} /></button>
                           </>
                         )}
                       </td>

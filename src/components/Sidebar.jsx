@@ -52,15 +52,7 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
           </button>
         )}
 
-        {canAccess('pipeline') && (
-          <button 
-            className={`nav-item ${currentTab === 'pipeline' ? 'active' : ''}`}
-            onClick={() => setCurrentTab('pipeline')}
-          >
-            <KanbanSquare size={20} />
-            <span>Sales Pipeline</span>
-          </button>
-        )}
+
 
         {canAccess('ai') && (
           <button 
@@ -92,15 +84,7 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
           </button>
         )}
 
-        {canAccess('quote') && (
-          <button 
-            className={`nav-item ${currentTab === 'so_tracking' ? 'active' : ''}`}
-            onClick={() => setCurrentTab('so_tracking')}
-          >
-            <PackageCheck size={20} />
-            <span>ติดตามสถานะ SO</span>
-          </button>
-        )}
+
 
         {canAccess('stock') && (
           <button 
@@ -112,15 +96,7 @@ export default function Sidebar({ currentTab, setCurrentTab, isDark, setIsDark, 
           </button>
         )}
         
-        {canAccess('stock') && (
-          <button 
-            className={`nav-item ${currentTab === 'fulfillment' ? 'active' : ''}`}
-            onClick={() => setCurrentTab('fulfillment')}
-          >
-            <Truck size={20} />
-            <span>รายการรอจัดส่ง (คลัง)</span>
-          </button>
-        )}
+
 
         {canAccess('database') && (
           <button 

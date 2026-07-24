@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+export const GAS_URL = 'https://script.google.com/macros/s/AKfycbw6zTz095TRtg3F6h48tk111oDA5Cyxt6bF6y9OOFhS5Mtyz2YUufUqXVcekhjrhcRZ/exec';
+
 const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
@@ -7,10 +9,8 @@ export function DataProvider({ children }) {
   const [employees, setEmployees] = useState([]);
   const [products, setProducts] = useState([]);
   const [stockData, setStockData] = useState([]);
-  const [stockLogs, setStockLogs] = useState([]);
-  const [salesSO, setSalesSO] = useState([]);
-  const [subSalesSO, setSubSalesSO] = useState([]);
-  const [pipelineData, setPipelineData] = useState([]);
+  const [salesPRHeader, setSalesPRHeader] = useState([]);
+  const [salesPRBody, setSalesPRBody] = useState([]);
   const [settings, setSettings] = useState({});
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
@@ -19,20 +19,18 @@ export function DataProvider({ children }) {
   const fetchAllData = async () => {
     try {
       const s = getSettings();
-      const n8nUrl = s.n8nUrl || '';
+      const ฐานข้อมูลUrl = s.ฐานข้อมูลUrl || '';
       const localProfile = JSON.parse(localStorage.getItem('companyProfile') || '{}');
       
-      // เราใช้ Promise.all เพื่อยิง API ทั้งหมดพร้อมกัน
-      const [custRes, empRes, prodRes, pipeRes, setRes, stockRes, logRes, soRes, subSoRes] = await Promise.all([
-        fetch(`${n8nUrl}/webhook/db-read?sheet=customer&t=${Date.now()}`).catch(() => null),
-        fetch(`${n8nUrl}/webhook/db-read?sheet=empolyee&t=${Date.now()}`).catch(() => null),
-        fetch(`${n8nUrl}/webhook/db-read?sheet=product&t=${Date.now()}`).catch(() => null),
-        fetch(`${n8nUrl}/webhook/db-read?sheet=pipeline&t=${Date.now()}`).catch(() => null),
-        fetch(`${n8nUrl}/webhook/settings?t=${Date.now()}`).catch(() => null),
-        fetch(`${n8nUrl}/webhook/db-read?sheet=stock&t=${Date.now()}`).catch(() => null),
-        fetch(`${n8nUrl}/webhook/db-read?sheet=Stock_Log&t=${Date.now()}`).catch(() => null),
-        fetch(`${n8nUrl}/webhook/db-read?sheet=sales_so&t=${Date.now()}`).catch(() => null),
-        fetch(`${n8nUrl}/webhook/db-read?sheet=sub_sales_so&t=${Date.now()}`).catch(() => null)
+      // เราใช้ Promise.all เพื่อยิง API ทั้งหมดพร้อมกันไปยัง Google Apps Script (GAS)
+      const [custRes, empRes, prodRes, setRes, stockRes, headerRes, bodyRes] = await Promise.all([
+        fetch(`${GAS_URL}?sheet=customer&t=${Date.now()}`).catch(() => null),
+        fetch(`${GAS_URL}?sheet=empolyee&t=${Date.now()}`).catch(() => null),
+        fetch(`${GAS_URL}?sheet=product&t=${Date.now()}`).catch(() => null),
+        fetch(`${GAS_URL}?sheet=Settings&t=${Date.now()}`).catch(() => null),
+        fetch(`${GAS_URL}?sheet=stock&t=${Date.now()}`).catch(() => null),
+        fetch(`${GAS_URL}?sheet=sales_pr_header&t=${Date.now()}`).catch(() => null),
+        fetch(`${GAS_URL}?sheet=sales_pr_body&t=${Date.now()}`).catch(() => null)
       ]);
 
       const safeJson = async (res) => {
@@ -95,20 +93,12 @@ export function DataProvider({ children }) {
         setStockData(parseN8nData(await safeJson(stockRes)));
       }
 
-      if (logRes && logRes.ok) {
-        setStockLogs(parseN8nData(await safeJson(logRes)));
+      if (headerRes && headerRes.ok) {
+        setSalesPRHeader(parseN8nData(await safeJson(headerRes)));
       }
 
-      if (soRes && soRes.ok) {
-        setSalesSO(parseN8nData(await safeJson(soRes)));
-      }
-
-      if (subSoRes && subSoRes.ok) {
-        setSubSalesSO(parseN8nData(await safeJson(subSoRes)));
-      }
-
-      if (pipeRes && pipeRes.ok) {
-        setPipelineData(parseN8nData(await safeJson(pipeRes)));
+      if (bodyRes && bodyRes.ok) {
+        setSalesPRBody(parseN8nData(await safeJson(bodyRes)));
       }
 
       let newSettings = { ...localProfile };
@@ -147,7 +137,7 @@ export function DataProvider({ children }) {
   const refreshData = () => fetchAllData();
 
   return (
-    <DataContext.Provider value={{ customers, employees, products, stockData, stockLogs, salesSO, subSalesSO, pipelineData, settings, isDataLoaded, refreshData }}>
+    <DataContext.Provider value={{ customers, employees, products, stockData, salesPRHeader, salesPRBody, settings, isDataLoaded, refreshData }}>
       {children}
     </DataContext.Provider>
   );
